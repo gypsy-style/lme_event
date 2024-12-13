@@ -1,0 +1,121 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: sawadakeisuke
+ * Date: 9/5/22
+ * Time: 4:53 PM
+ * keyはname属性
+ * typeの直（text,textarea,select,birthday_y,birthday_m）
+ * titleは日本語項目名
+ * is_profileはプロフィールに表示させるかどうか
+ */
+class custom_fields {
+    static $custom_fields = [
+        'fullname'=>[
+            'type'=>'text',
+            'title'=>'お名前',
+            'is_profile'=>true,
+            'is_editable'=>true
+        ],
+        'point'=>[
+            'type'=>'text',
+            'title'=>'ポイント',
+            'is_profile'=>true,
+            'is_editable'=>false
+        ],
+        'richmenu_id'=>[
+            'type'=>'richmenu_id',
+            'title'=>'リッチメニュー',
+            'is_profile'=>false,
+            'is_editable'=>false
+        ],
+        'phone'=>[
+            'type'=>'text',
+            'title'=>'電話番号',
+            'is_profile'=>true,
+            'is_editable'=>true
+        ],
+        'email'=>[
+            'type'=>'text',
+            'title'=>'メールアドレス',
+            'is_profile'=>true,
+            'is_editable'=>true
+        ],
+        'sex'=>[
+            'type'=>'select',
+            'title'=>'性別',
+            'options'=>[
+                '男性',
+                '女性',
+                'その他',
+            ],
+            'is_profile'=>true,
+            'is_editable'=>false
+        ],
+        'birthday_y'=>[
+            'type'=>'birthday_y',
+            'title'=>'誕生日（年）',
+            'is_profile'=>true,
+            'is_editable'=>false
+        ],
+        'birthday_m'=>[
+            'type'=>'birthday_m',
+            'title'=>'誕生日（月）',
+            'is_profile'=>true,
+            'is_editable'=>false
+        ],
+        'length'=>[
+            'type'=>'select',
+            'title'=>'髪の長さ',
+            'options'=>[
+                'ロング',
+                'ミディアム',
+                'ショート'
+            ],
+            'is_profile'=>false,
+            'is_editable'=>false
+        ],
+        'experience'=>[
+            'type'=>'select',
+            'title'=>'縮毛矯正はやったこたありますか',
+            'options'=>[
+                'はい',
+                'いいえ'
+            ],
+            'is_profile'=>false,
+            'is_editable'=>false
+        ],
+        'color'=>[
+            'type'=>'select',
+            'title'=>'現在カラーはしていますか',
+            'options'=>[
+                'はい',
+                'いいえ'
+            ],
+            'is_profile'=>false,
+            'is_editable'=>false
+        ],
+        'bleach'=>[
+            'type'=>'select',
+            'title'=>'ブリーチはしていますか',
+            'options'=>[
+                'はい',
+                'いいえ'
+            ],
+            'is_profile'=>false,
+            'is_editable'=>false
+        ],
+        'memo'=>[
+            'type'=>'textarea',
+            'title'=>'お悩み・問い合わせ',
+            'is_profile'=>false,
+            'is_editable'=>false
+        ],
+        'line_id'=>[
+            'type'=>'text',
+            'title'=>'LINE ID',
+            'is_profile'=>false,
+            'is_editable'=>false
+        ],
+    ];
+}

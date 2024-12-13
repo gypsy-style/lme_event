@@ -1,0 +1,189 @@
+@charset 'UTF-8';
+/* ==============================================================================
+
+CSS Information
+
+ File name : doc.css
+ Style Info: 書類用
+
+============================================================================== */
+
+:root {
+	--color-text           : #333;
+	--color_lglay          : #EEE;
+}
+
+html {
+	height: 100%;
+	font-size: 16px;
+}
+
+body {
+	overflow: hidden;
+	overflow-y: auto;
+	position: relative;
+	left: 0;
+	height: 100%;
+	background-attachment: fixed;
+	color: var(--color-text);
+	font-size: 1rem;
+	font-family: 'Hiragino Kaku Gothic Pro','ヒラギノ角ゴ Pro W3','メイリオ',Meiryo,'ＭＳ Ｐゴシック','MS PGothic',sans-serif;
+	line-height: 1.5;
+	word-wrap: break-word;
+}
+
+a {
+	text-decoration: underline;
+}
+a:hover {
+	opacity: .65;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+	border: none;
+	vertical-align: bottom;
+}
+
+/* /////////////////////////////////////////////////////////////////////////////
+
+ layout
+
+///////////////////////////////////////////////////////////////////////////// */
+
+.lmd_container {
+	max-width: 880px;
+	margin: auto;
+    padding: 20px;
+}
+
+
+/* title block 
+-----------------------------------------------------------*/
+
+.lmd-title_block {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2em;
+}
+.lmd-title_block .title {
+    font-size: min(2.25rem);
+    letter-spacing: .15em;
+}
+.lmd-title_block .data_box {
+    margin-top: 1em;
+    font-size: .875rem;
+}
+
+
+/* info area
+-----------------------------------------------------------*/
+
+.lmd-info_area {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2em;
+}
+.lmd-info_area .lmd-orderer_block {
+    width: 58%;    
+}
+.lmd-info_area .lmd-contractor_block {
+    width: 38%;
+    text-align: right;
+}
+.lmd-info_area .name_box {
+    margin-bottom: 1em;
+}
+
+/* orderer:発注者 */
+.lmd-orderer_block {
+    font-size: 1.25rem;
+}
+.lmd-orderer_block h2 ,
+.lmd-orderer_block h3 {
+    font-weight: normal;
+}
+
+.lmd-orderer_block .info_box {
+    width: 17em;
+    max-width: 100%;
+}
+.lmd-orderer_block .info_box .text {
+    margin-bottom: .5em;
+    font-size: 1rem;
+}
+.lmd-orderer_block .info_box .price_box {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: .5em;
+    padding-bottom: .5em;
+    border-bottom: 1px solid var(--color-text);
+}
+.lmd-orderer_block .info_box .price_box > * {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+.lmd-orderer_block .info_box .limit_box {
+    display: flex;
+    justify-content: space-between;
+}
+.lmd-orderer_block .info_box .limit_box > * {
+    display: block;
+}
+
+/* contractor:受注者 */
+.lmd-contractor_block {
+    font-size: .9375rem;
+}
+.lmd-contractor_block .name_box {
+    font-size: 1.125rem;
+}
+.lmd-contractor_block .info_box p:not(:last-child) {
+    margin-bottom: .75em;
+}
+
+
+/* table
+------------------------------------------------------------- */
+
+.lmd-tbl {
+	width: 100%;
+	margin: 0 auto 2em;
+	border-collapse: collapse;
+}
+.lmd-tbl th ,
+.lmd-tbl td {
+	padding: 10px;
+	border: 1px solid var(--color-text);
+    font-weight: normal;
+}
+.lmd-tbl thead th ,
+.lmd-tbl thead td {
+    text-align: center;
+}
+.lmd-tbl tbody th {
+    width: 50%;
+    text-align: left;
+}
+.lmd-tbl tbody td {
+    text-align: right;
+}
+.lmd-tbl tfoot tr:last-child {
+    background-color: var(--color_lglay);
+}
+.lmd-tbl tfoot th ,
+.lmd-tbl tfoot td {
+    text-align: right;
+}
+
+
+/* memo
+------------------------------------------------------------- */
+
+.memo_block {
+    min-height: 6em;
+    padding: 20px;
+    border: 1px solid var(--color-text);
+}

@@ -1,0 +1,7 @@
+{
+    "name": "sawadakeisuke/line-members",
+    "require": {
+        "linecorp/line-bot-sdk": "^7.5",
+        "chillerlan/php-qrcode": "^4.3"
+    }
+}
