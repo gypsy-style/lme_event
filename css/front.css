@@ -533,6 +533,32 @@ img {
 	background-color: var(--color_glay);
 }
 
+/* リスト 規約用 lmf-term_block 内
+-----------------------------------------------------------*/
+
+.lmf-dot_list ,
+.lmf-ordered_list {
+	margin-bottom: 2em;
+	padding-left: 1em;
+}
+.lmf-dot_list.border ,
+.lmf-ordered_list.border {
+	padding: 1em 1em 1em 2em;
+	border: 1px solid var(--color_glay);
+}
+.lmf-dot_list ul ,
+.lmf-dot_list ol ,
+.lmf-ordered_list ul ,
+.lmf-ordered_list ol {
+	margin-top: 1em;
+}
+.lmf-ordered_list li {
+	list-style-type: decimal;
+}
+.lmf-dot_list li {
+	list-style-type: disc;
+}
+
 
 /* ページナビ
 -----------------------------------------------------------*/

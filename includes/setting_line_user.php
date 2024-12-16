@@ -17,8 +17,9 @@ class settingLineUser
     static $fields = [
         'line_id' => 'LINEID',
         'richmenu_id' => 'リッチメニュー',
-        'address' => '住所',
+        'campany_name' => '会社名',
         'tel' => '電話番号',
+        'email' => 'メールアドレス',
         'sex' => '性別',
         
     ];
@@ -98,9 +99,9 @@ class settingLineUser
     <?php
     }
 
-    static function show_address($post)
+    static function show_campany_name($post)
     {
-        $item_name = 'address';
+        $item_name = 'campany_name';
         $post_id = $post->ID;
         $value = get_post_meta($post_id, $item_name, true);
 ?>
@@ -117,6 +118,17 @@ class settingLineUser
 ?>
 
         <input type="tel" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
+    <?php
+    }
+
+    static function show_email($post)
+    {
+        $item_name = 'email';
+        $post_id = $post->ID;
+        $value = get_post_meta($post_id, $item_name, true);
+?>
+
+        <input type="text" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
     <?php
     }
 

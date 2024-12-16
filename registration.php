@@ -22,7 +22,7 @@ $show_banner = get_option('show_banner');
     <link href="./css/default.css" rel="stylesheet" media="all">
     <link href="./css/front.css" rel="stylesheet" media="all">
 
-    <title>WAKUWAKU POINT [会員登録]</title>
+    <title>日創研南大阪経営研究会[会員登録]</title>
     <script
         src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
@@ -190,14 +190,15 @@ $show_banner = get_option('show_banner');
                 <form id="form">
                     <div class="lmf-profedit_block lmf-white_block">
                         <p class="mB20">下記内容を入力いただき登録ボタンを押してください。</p>
-                        <p class="mB20">下記内容を入力いただき登録ボタンを押してください。</p>
                         <dl class="lmf-form_box">
+                            <dt><label for="addr">会社名</label></dt>
+                            <dd><em class="input"><input type="text" name="campany_name" id="campany_name"></em></dd>
                             <dt><label for="name">名前</label></dt>
                             <dd><em class="input"><input type="text" name="name" id="name"></em></dd>
-                            <dt><label for="addr">住所</label></dt>
-                            <dd><em class="input"><input type="text" name="addr" id="addr"></em></dd>
                             <dt><label for="tel">電話番号</label></dt>
                             <dd><em class="input"><input type="tel" name="tel" id="tel"></em></dd>
+                            <dt><label for="tel">メールアドレス</label></dt>
+                            <dd><em class="input"><input type="email" name="email" id="email"></em></dd>
                             <dt><label for="sex">性別</label></dt>
                             <dd><select name="sex" id="sex">
                                     <option value="">----選択してください----</option>
@@ -205,7 +206,7 @@ $show_banner = get_option('show_banner');
                                     <option value="">女性</option>
                                     <option value="">その他</option>
                                 </select></dd>
-                            <dd class="text">登録にあたり南大阪経営研究会の<a href="#">利用規約</a>をご確認ください。</dd>
+                            <dd class="text">登録にあたり南大阪経営研究会の<a href="privacy.html">利用規約</a>をご確認ください。</dd>
                             <dd class="center"><label for="term"><input type="checkbox" name="term" id="term">利用規約に同意する</label></dd>
                         </dl>
                         <p id="agreement-warning" style="color: red;text-align:center;">利用規約に同意してください</p>
@@ -216,43 +217,6 @@ $show_banner = get_option('show_banner');
             </section>
         </main>
     </div><!-- /.lmf-container -->
-
-    <div class="lmf-modal_wrap">
-        <div class="lmf-modal_layer"></div>
-        <div class="lmf-modal_content" id="modal_terms">
-            <div class="modal_close_btn"><button>&times;</button></div>
-            <div class="inner">
-                <h2>南大阪経営研究会 利用規約</h2>
-
-                <div class="text_block">
-
-                    <div>
-                        <h4>1. 適用範囲</h4>
-                        <p>本規約は、南大阪経営研究会（以下、「本プログラム」という）に参加するすべての会員に適用されます。本プログラムを利用することで、会員は以下の利用規約に同意したものとみなされます。</p>
-                        <h4>2. プログラムの説明</h4>
-                        <p>本プログラムは、指定された事業者での購入時にポイントを獲得し、これらのポイントを次回以降の買い物で使用することができるプログラムです。</p>
-                        <h4>3. 会員資格</h4>
-                        <p>会員登録は無料ですが、年齢制限が適用される場合があります。<br>会員は、正確かつ最新の情報を提供する義務があります。<br>各会員は、一つのアカウントのみを持つことができます。</p>
-                        <h4>4. ポイントの獲得と使用</h4>
-                        <p>ポイントは、参加事業者での商品購入や特定のプロモーション活動に参加することで獲得できます。<br>獲得したポイントは、次回以降の買い物で使用することができます。<br>ポイントの有効期限は獲得から１年間とし、期限切れのポイントは自動的に失効します。</p>
-                        <h4>5. プライバシーポリシー</h4>
-                        <p>会員から収集した情報は、本プログラムの運営、改善およびプロモーションの目的でのみ使用します。</p>
-                        <h4>6. アカウントの管理</h4>
-                        <p>会員は自身のログイン情報を安全に保管し、第三者による不正利用から保護する責任を負います。</p>
-                        <h4>7. 利用規約の変更</h4>
-                        <p>当プログラムは、必要に応じて利用規約を変更することがあります。変更後の利用規約は、本プログラムのウェブサイト上で公開し、変更内容を会員に通知します。</p>
-                        <h4>8. 免責事項</h4>
-                        <p>当プログラムは、システム障害、天災地変、その他不可抗力によりサービスを提供できない場合には、責任を負わないものとします。</p>
-                        <h4>9. 解約と退会</h4>
-                        <p>会員はいつでも本プログラムの退会手続きを行うことができます。退会に伴い、未使用のポイントは失効します。</p>
-                        <!-- <p> 隠れ家風のレトロな空間で、串カツは勿論お造りやその他豊富な逸品をたっぷり堪能♪ </p>
-                    <p> ≪自慢の串カツ≫<br> 薄くサクサクに仕上げた衣でしつこくなく軽い味わい。<br> 知る人ぞ知る鼓ソースを使用した甘めの特製ダレでどうぞ </p>
-                    <p> ≪お得なコース≫<br> 絶品串カツやもつ鍋が食べれるコースが2時間飲み放題付きで3,850円！単品90分飲み放題のプランもご用意してます◎</p> -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div><!-- /.modal_wrap -->
 </body>
 
 </html>
