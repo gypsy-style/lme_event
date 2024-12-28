@@ -18,6 +18,7 @@ class settingLineUser
         'line_id' => 'LINEID',
         'richmenu_id' => 'リッチメニュー',
         'campany_name' => '会社名',
+        'name' => '名前',
         'tel' => '電話番号',
         'email' => 'メールアドレス',
         'sex' => '性別',
@@ -102,6 +103,16 @@ class settingLineUser
     static function show_campany_name($post)
     {
         $item_name = 'campany_name';
+        $post_id = $post->ID;
+        $value = get_post_meta($post_id, $item_name, true);
+?>
+
+        <input type="text" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
+    <?php
+    }
+    static function show_name($post)
+    {
+        $item_name = 'name';
         $post_id = $post->ID;
         $value = get_post_meta($post_id, $item_name, true);
 ?>

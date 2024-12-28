@@ -13,7 +13,7 @@ require_once (plugin_dir_path(__FILE__ ).'includes/setting_error_log.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_point_history.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_store_member.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_store_banner.php');
-require_once (plugin_dir_path(__FILE__ ).'includes/setting_store.php');
+require_once (plugin_dir_path(__FILE__ ).'includes/setting_event.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/endpoints.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/endpoints_store.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/endpoints_admin.php');
@@ -64,9 +64,9 @@ class lineMembers {
         add_action('save_post', ['settingStoreMember','save_custom_fields'] );
 
         // 店舗
-        add_action('init',['settingStore','set_store_post_type']);
-        add_action('admin_menu',['settingStore','create_store_custom_fields']);
-        add_action('save_post', ['settingStore','save_custom_fields'] );
+        add_action('init',['settingEvent','set_event_post_type']);
+        add_action('admin_menu',['settingEvent','create_event_custom_fields']);
+        add_action('save_post', ['settingEvent','save_custom_fields'] );
 
         add_action('add_metaboxes',['settings','set_line_user_custom_fields']);
         add_action('admin_init', ['settings','register_custom_setting']);
