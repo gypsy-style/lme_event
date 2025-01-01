@@ -22,12 +22,11 @@ class endpoints
     static $endpoint_functions = [
         'register_line_user',
         'update_line_user',
-        'update_point',
         'richmenu_profile',
-        'update_by_qr',
+
         'line_api_error',
         'point_history',
-        'get_point',
+        'entry_request',
         'get_latest_point_info',
         'now_point',
         'point_card',
@@ -128,7 +127,7 @@ class endpoints
                         lineconnectRichmenu::updateRichMenu($line_id, $richmenu2);
                     }
                 }
-                
+
                 return true;
             }
             wp_reset_postdata();
@@ -175,8 +174,8 @@ class endpoints
             }
         }
         // ポイント有効期限を登録
-        $one_year_later = date_i18n( 'Y-m-d', strtotime('+1 year') );
-        update_post_meta($post_id,'point_limit_date',$one_year_later);
+        $one_year_later = date_i18n('Y-m-d', strtotime('+1 year'));
+        update_post_meta($post_id, 'point_limit_date', $one_year_later);
 
         if ($type != 'edit' && $richmenu2) {
             update_post_meta($post_id, 'richmenu_id', $richmenu2);
@@ -244,140 +243,9 @@ class endpoints
         return true;
     }
 
-    /**
-     * ポイントのアップデート
-     */
-    static function update_point()
-    {
-        $update_point_num = $_REQUEST['point_num'];
-        $line_id = $_REQUEST['line_id'];
 
-        // line_idで絞り込み
-        $args = array(
-            'post_type' => array('line_user'), //投稿タイプを指定
-            'posts_per_page' => '-1', //取得する投稿件数を指定
-            'meta_key' => 'line_id', //カスタムフィールドのキーを指定
-            'meta_value' => $line_id, //カスタムフィールドの値を指定
-            'orderby' => 'meta_value', //ソートの基準を指定
-            'order' => 'asc' //ソート方法を指定（昇順：asc, 降順：desc）
-        );
-        $the_query = new WP_Query($args);
 
-        if ($the_query->have_posts()) {
-            while ($the_query->have_posts()) {
-                $the_query->the_post();
-                $post_id = get_the_ID();
 
-                $now_point = intval(get_post_meta($post_id, 'point'));
-            }
-        }
-    }
-
-    /**
-     * QRコードによる更新
-     */
-    static function update_by_qr()
-    {
-
-        // @ini_set( 'display_errors', 1 );
-        // $line_id = '';
-        $line_id = $_REQUEST['line_id'];
-
-        $name = $_REQUEST['name'];
-        $value = $_REQUEST['value'];
-
-        if (!$line_id) {
-            // エラーログに追加
-            $error_post = array(
-                'post_title' => 'ポイントアップエラー',
-                'post_type' => 'error_log',
-                'post_content' => '',
-                'post_status' => 'publish', //公開ステータス
-                'post_author' => 1, //ユーザーID
-            );
-
-            $error_log_post_id = wp_insert_post($error_post, true);
-
-            update_post_meta($error_log_post_id, 'point', 1); // ポイントは1からスタート
-
-            echo 'error';
-            exit;
-        }
-
-        // 1日一回ではないかどうか
-        $today = date_i18n('Y-m-d');
-        $today_from = $today . ' 00:00:00';
-        $today_to = $today . '23:59:59';
-
-        $args_once_a_day = [
-            'post_type' => array('point_history'), //投稿タイプを指定
-            'posts_per_page' => '-1', //取得する投稿件数を指定
-            'orderby' => 'meta_value', //ソートの基準を指定
-            'order' => 'asc', //ソート方法を指定（昇順：asc, 降順：desc）
-            'date_query' => [
-                [
-                    'after' => $today_from,
-                    'before' => $today_to,
-                    'inclusive' => true
-                ]
-            ],
-            'meta_query' => [
-                'relation' => 'AND',
-                [
-                    'key' => 'point_type',
-                    'value' => 'QR'
-                ],
-                [
-                    'key' => 'line_id',
-                    'value' => $line_id
-                ]
-            ]
-        ];
-        $once_a_day_query = new WP_Query($args_once_a_day);
-        if ($once_a_day_query->have_posts()) {
-            echo 'pointed';
-            exit;
-        }
-        wp_reset_postdata();
-
-        // line_idで絞り込み
-        $args = array(
-            'post_type' => array('line_user'), //投稿タイプを指定
-            'posts_per_page' => '-1', //取得する投稿件数を指定
-            'meta_key' => 'line_id', //カスタムフィールドのキーを指定
-            'meta_value' => $line_id, //カスタムフィールドの値を指定
-            'orderby' => 'meta_value', //ソートの基準を指定
-            'order' => 'asc' //ソート方法を指定（昇順：asc, 降順：desc）
-        );
-        $the_query = new WP_Query($args);
-
-        if ($the_query->have_posts()) {
-            while ($the_query->have_posts()) {
-                $the_query->the_post();
-                $post_id = get_the_ID();
-
-                $now_value = get_post_meta($post_id, $name, true);
-
-                $update_value = ($now_value + $value);
-
-                update_post_meta($post_id, $name, $update_value);
-
-                // ポイント履歴に登録
-                $point_history_post = array(
-                    'post_title' => 'QRによるポイント追加',
-                    'post_type' => 'point_history',
-                    'post_content' => '',
-                    'post_status' => 'publish', //公開ステータス
-                    'post_author' => 1, //ユーザーID
-                );
-
-                $point_history_post_id = wp_insert_post($point_history_post, true);
-                update_post_meta($point_history_post_id, 'point_number', $value);
-                update_post_meta($point_history_post_id, 'line_id', $line_id);
-                update_post_meta($point_history_post_id, 'point_type', 'QR');
-            }
-        }
-    }
 
     /**
      * richmenuのプロフィール表示
@@ -525,11 +393,11 @@ class endpoints
                 $return['post_date'] = $post_date;
 
                 // ポイント利用期限取得
-                $point_limit_date = get_post_meta($post_id,'point_limit_date',true);
-                if(!$point_limit_date) {
+                $point_limit_date = get_post_meta($post_id, 'point_limit_date', true);
+                if (!$point_limit_date) {
                     $point_limit_date = '最終ポイント付与後 1 年';
-                }else {
-                    $point_limit_date = '有効期限　'.$point_limit_date;
+                } else {
+                    $point_limit_date = '有効期限　' . $point_limit_date;
                 }
                 $return['point_limit_date'] = $point_limit_date;
 
@@ -562,43 +430,43 @@ class endpoints
                         $store_id = get_post_meta($point_history_id, 'store_id', true);
                         $store_name = get_post_meta($store_id, 'store_name', true);
                         $homepage = get_post_meta($store_id, 'homepage', true);
-                        if($homepage) {
-                            $homepage = '<li class="web"><a href="'.$homepage.'"><span>&nbsp;</span></a></li>';
+                        if ($homepage) {
+                            $homepage = '<li class="web"><a href="' . $homepage . '"><span>&nbsp;</span></a></li>';
                         }
                         $instagram = get_post_meta($store_id, 'instagram', true);
-                        if($instagram) {
-                            $instagram = '<li class="insta"><a href="'.$instagram.'"><span>&nbsp;</span></a></li>';
+                        if ($instagram) {
+                            $instagram = '<li class="insta"><a href="' . $instagram . '"><span>&nbsp;</span></a></li>';
                         }
                         $official_line = get_post_meta($store_id, 'official_line', true);
-                        if($official_line) {
-                            $official_line = '<li class="line"><a href="'.$official_line.'"><span>&nbsp;</span></a></li>';
+                        if ($official_line) {
+                            $official_line = '<li class="line"><a href="' . $official_line . '"><span>&nbsp;</span></a></li>';
                         }
                         $store_image = get_the_post_thumbnail_url($store_id, 'full');
-                        if(!$store_image) {
+                        if (!$store_image) {
                             $store_image = './image/front/no_img400.jpg';
                         }
                         $post_date = get_the_date('Y年m月d日 H:i', $post_id);
 
-        
+
                         // html生成
                         $point_history_html = '<li>
                         <div class="inner">
-                            <figure class="fig_box "><img src="'.$store_image.'" alt=""></figure>
+                            <figure class="fig_box "><img src="' . $store_image . '" alt=""></figure>
                             <div class="info_box">
-                                <h3 class="name">'.$store_name.'</h3>
+                                <h3 class="name">' . $store_name . '</h3>
                                 <ul class="sns_list sns">
-                                    '.$official_line
-                                    .$instagram
-                                    .$homepage.'
+                                    ' . $official_line
+                            . $instagram
+                            . $homepage . '
                                 </ul>
                             </div>
                         </div>
                     </li>';
-        
+
                         header("Content-type: application/json; charset=UTF-8");
-        
+
                         //                wp_die();
-        
+
                     }
                     $point_history_html .= '</ul>
                     </div>';
@@ -686,15 +554,14 @@ class endpoints
                 $post_date = get_the_date('Y年m月d日 H:i', $post_id);
                 if ($point_type == '付与') {
                     $get_or_use_class = 'get';
-                    $point_number = '+'.$point_number;
-
+                    $point_number = '+' . $point_number;
                 } else {
                     $get_or_use_class = 'use';
-                    $point_number = '-'.$point_number;
+                    $point_number = '-' . $point_number;
                 }
 
                 // html生成
-                $html .= '<li class="'.$get_or_use_class.'">';
+                $html .= '<li class="' . $get_or_use_class . '">';
                 $html .= '<span class="icon">ポイント' . $point_type . '</span>';
                 $html .= '<em class="data">' . $post_date . '</em>';
                 $html .= '<b class="title">' . $store_name . '</b>';
@@ -718,104 +585,97 @@ class endpoints
     }
 
     /**
-     * ポイントを貯める画面　初期表示
+     * entry_request
      * @return void 
      */
-    static function get_point()
+    static function entry_request()
     {
-        $fields = [
-            'line_id' => 'LINEID',
-        ];
-        $line_id = $_REQUEST['line_id'];
-        $enabled_coupon = get_option('enabled_coupon');
-        $coupon_expired_date = get_option('coupon_expired_date');
+        // POSTデータを取得
+        $accessToken = $_POST['access_token'];
+        $event_id = $_POST['event_id'];
 
-        $get_items = [];
-        foreach ($fields as $input_name => $values) {
-            array_push($get_items, $input_name);
-        }
-
-
-        // line_idで絞り込み
-        $args = array(
-            'post_type' => array('line_user'), //投稿タイプを指定
-            'posts_per_page' => '-1', //取得する投稿件数を指定
-            'meta_key' => 'line_id', //カスタムフィールドのキーを指定
-            'meta_value' => $line_id, //カスタムフィールドの値を指定
-            'orderby' => 'meta_value', //ソートの基準を指定
-            'order' => 'asc' //ソート方法を指定（昇順：asc, 降順：desc）
-        );
-        $the_query = new WP_Query($args);
-        if ($the_query->have_posts()) {
-            while ($the_query->have_posts()) {
-                $return = [];
-                $the_query->the_post();
-                $post_id = get_the_ID();
-                $name = get_the_title($post_id);
-                $return['name'] = $name;
-                foreach ($get_items as $item) {
-                    //                    echo 'item='.get_post_meta($post_id,$item);
-                    $item_value = get_post_meta($post_id, $item);
-
-                    if (isset($item_value[0])) {
-                        $return[$item] = $item_value[0];
-                    }
-                }
-
-                // ポイント利用期限取得
-                $point_limit_date = get_post_meta($post_id,'point_limit_date',true);
-                if(!$point_limit_date) {
-                    $point_limit_date = '最終ポイント付与後 1 年';
-                }else {
-                    $point_limit_date = '有効期限　'.$point_limit_date;
-                }
-                $return['point_limit_date'] = $point_limit_date;
-
-                // 現在のポイント数を取得
-                $point = get_post_meta($post_id,'point',true);
-                $return['point'] = $point;
-
-                // 更新日取得
-                $modified_date = get_the_modified_date('Y年n月j日（D）H時i分');
-                $return['modified_date'] = $modified_date;
-
-                // 投稿日取得
-                $post_date = get_the_time('Y年n月j日（D）H時i分');
-                $return['post_date'] = $post_date;
-
-                // qrcode
-                $options = new QROptions([
-                    'eccLevel' => QRCode::ECC_L,
-                    'outputType' => QRCode::OUTPUT_MARKUP_SVG, // SVG形式で出力
-                    'scale' => 3
-                ]);
-                // $qrcode = new QRCode($options);
-                // $path = storage_path('qrcode_2.png');
-                // $url = plugins_url('store/give_point.php', dirname(dirname(__FILE__) ). '/line-members/') . '?user_id=' . $post_id;
-                $liff_id_store_give_point = get_option('liff_id_store_give_point');
-                $url = 'https://liff.line.me/'.$liff_id_store_give_point.'?user_id='.$post_id;
-                $qrcode = (new QRCode($options))->render($url);
-                // $qrcode = (new QRCode($options))->render('https://caldo-hair.com/contents/wp-admin/post.php?post='.$post_id.'&action=edit');
-
-                $return['qrcode'] = $qrcode;
-
-                if ($enabled_coupon) {
-                    $post_date = get_post_time('Y-m-d');
-                    $coupon_expired_date = $coupon_expired_date ? $coupon_expired_date : 45;
-                    //                $return['coupon'] = $post_date;
-                    $return['coupon'] = date('Y年m月d日', strtotime('+' . $coupon_expired_date . ' day', strtotime($post_date)));
-                }
-
-
-                header("Content-type: application/json; charset=UTF-8");
-                echo json_encode($return);
-                //                wp_die();
-                exit;
-            }
-        } else {
-            echo json_encode([]);
+        // アクセストークンが存在しない場合は終了
+        if (!$accessToken) {
+            echo json_encode(['status' => 'error', 'message' => 'Access token is missing']);
             exit;
         }
+
+        // 1. アクセストークンからLINEユーザーID（line_id）を取得
+        $lineProfile = self::get_line_profile($accessToken);
+        if (!$lineProfile || !isset($lineProfile['userId'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to retrieve LINE user ID']);
+            exit;
+        }
+        $line_id = $lineProfile['userId'];
+
+        // 2. カスタム投稿タイプ line_user で line_id をキーに検索
+        $line_user_query = new WP_Query([
+            'post_type' => 'line_user',
+            'meta_query' => [
+                [
+                    'key' => 'line_id',
+                    'value' => $line_id,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        if ($line_user_query->have_posts()) {
+            // 3. line_user が存在すれば postID を取得
+            $line_user_post_id = $line_user_query->posts[0]->ID;
+        } else {
+            // 4. line_user が存在しない場合、新規作成
+            $line_user_post_id = wp_insert_post([
+                'post_type' => 'line_user',
+                'post_title' => $lineProfile['displayName'], // LINEの表示名をタイトルに使用
+                'post_status' => 'publish',
+            ]);
+
+            // line_id をカスタムフィールドに保存
+            update_post_meta($line_user_post_id, 'line_id', $line_id);
+        }
+
+        // 5. entry_history に user_id と event_id を保存
+        $entry_post_id = wp_insert_post([
+            'post_type' => 'entry_history',
+            'post_title' => "User {$line_user_post_id} Entry for Event {$event_id}",
+            'post_status' => 'publish',
+        ]);
+
+        // 関連データを保存
+        update_post_meta($entry_post_id, 'user_id', $line_user_post_id);
+        update_post_meta($entry_post_id, 'event_id', $event_id);
+
+        // 6. 成功メッセージを返す
+        echo json_encode(['status' => 'success', 'message' => 'Entry registered successfully']);
+        exit;
+    }
+
+    /**
+     * LINEプロフィールを取得する
+     *
+     * @param string $accessToken アクセストークン
+     * @return array|null LINEプロフィール情報
+     */
+    static function get_line_profile($accessToken)
+    {
+        $url = 'https://api.line.me/v2/profile';
+        $headers = [
+            'Authorization: Bearer ' . $accessToken,
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        if ($response) {
+            return json_decode($response, true);
+        }
+
+        return null;
     }
 
     static function get_latest_point_info()
@@ -839,17 +699,16 @@ class endpoints
             while ($the_query->have_posts()) {
                 $the_query->the_post();
                 $user_id = get_the_ID();
-                
             }
-        }else {
+        } else {
             echo 'ERROR';
             exit;
         }
 
-        
-        
+
+
         wp_reset_postdata();
-        
+
         // user_idからポイント履歴の一番最新情報を取得
         // line_idで絞り込み
         $args = array(
@@ -877,15 +736,15 @@ class endpoints
                 $return = [];
                 $the_query->the_post();
                 $post_point_history_id = get_the_ID();
-                $point_number = get_post_meta($post_point_history_id,'point_number',true);
-                $store_id = get_post_meta($post_point_history_id,'store_id',true);
+                $point_number = get_post_meta($post_point_history_id, 'point_number', true);
+                $store_id = get_post_meta($post_point_history_id, 'store_id', true);
                 // $user_id = get_post_meta($post_point_history_id,'user_id',true);
-                $point_rate = get_post_meta($post_point_history_id,'point_rate',true);
-                $price = get_post_meta($post_point_history_id,'price',true);
-                $store_name = get_post_meta($store_id,'store_name',true);
-                $message = get_post_meta($store_id,'message',true);
-                $display_button = get_post_meta($store_id,'display_button',true);
-                
+                $point_rate = get_post_meta($post_point_history_id, 'point_rate', true);
+                $price = get_post_meta($post_point_history_id, 'price', true);
+                $store_name = get_post_meta($store_id, 'store_name', true);
+                $message = get_post_meta($store_id, 'message', true);
+                $display_button = get_post_meta($store_id, 'display_button', true);
+
                 $return['latest_point'] = $point_number;
                 $return['store_id'] = $store_id;
                 $return['latest_point_rate'] = $point_rate;
@@ -893,34 +752,33 @@ class endpoints
                 $return['latest_store_name'] = $store_name;
                 $return['latest_message'] = $message;
                 $cta_button = '';
-                switch($display_button) {
+                switch ($display_button) {
                     case 'homepage':
-                        $cta_url = get_post_meta($store_id,'homepage',true);
+                        $cta_url = get_post_meta($store_id, 'homepage', true);
                         $cta_button = '<p class="lmf-btn_box btn_line">
-                        <a href="'.$cta_url.'"><span class="text">WEBサイトへアクセス</span></a>
+                        <a href="' . $cta_url . '"><span class="text">WEBサイトへアクセス</span></a>
                     </p>';
                         break;
-                    
+
                     case 'instagram':
-                        $cta_url = get_post_meta($store_id,'instagram',true);
+                        $cta_url = get_post_meta($store_id, 'instagram', true);
                         $cta_button = '<p class="lmf-btn_box btn_line">
-                        <a href="'.$cta_url.'"><span class="text">インスタグラムをフォロー</span></a>
+                        <a href="' . $cta_url . '"><span class="text">インスタグラムをフォロー</span></a>
                     </p>';
                         break;
-                    
+
                     case 'official_line':
-                        $cta_url = get_post_meta($store_id,'official_line',true);
+                        $cta_url = get_post_meta($store_id, 'official_line', true);
                         $cta_button = '<p class="lmf-btn_box btn_line">
-                        <a href="'.$cta_url.'"><span class="text">LINEでお友達登録</span></a>
+                        <a href="' . $cta_url . '"><span class="text">LINEでお友達登録</span></a>
                     </p>';
                         break;
-                    
+
                     default:
                         break;
-                    
                 }
                 $return['latest_cta_button'] = $cta_button;
-                
+
 
 
                 // 更新日取得

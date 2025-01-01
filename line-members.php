@@ -10,7 +10,7 @@ Author URI:
 require_once (plugin_dir_path(__FILE__ ).'includes/settings.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_line_user.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_error_log.php');
-require_once (plugin_dir_path(__FILE__ ).'includes/setting_point_history.php');
+require_once (plugin_dir_path(__FILE__ ).'includes/setting_entry_history.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_store_member.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_store_banner.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_event.php');
@@ -53,20 +53,21 @@ class lineMembers {
         add_action('admin_menu',['settingStoreBanner','create_store_banner_custom_fields']);
         add_action('save_post', ['settingStoreBanner','save_custom_fields'] );
 
-        // ポイント履歴関連
-        add_action('init',['settingPointHistory','set_point_history_post_type']);
-        add_action('admin_menu',['settingPointHistory','create_point_history_custom_fields']);
-        add_action('save_post', ['settingPointHistory','save_custom_fields'] );
+        // 申し込み履歴関連
+        add_action('init',['settingEntryHistory','set_entry_history_post_type']);
+        add_action('admin_menu',['settingEntryHistory','create_entry_history_custom_fields']);
+        add_action('save_post', ['settingEntryHistory','save_custom_fields'] );
 
         // 店舗スタッフ
         add_action('init',['settingStoreMember','set_store_post_type']);
         add_action('admin_menu',['settingStoreMember','create_store_user_custom_fields']);
         add_action('save_post', ['settingStoreMember','save_custom_fields'] );
 
-        // 店舗
+        // イベント
         add_action('init',['settingEvent','set_event_post_type']);
         add_action('admin_menu',['settingEvent','create_event_custom_fields']);
         add_action('save_post', ['settingEvent','save_custom_fields'] );
+        add_action('init', ['settingEvent', 'register_taxonomies']);
 
         add_action('add_metaboxes',['settings','set_line_user_custom_fields']);
         add_action('admin_init', ['settings','register_custom_setting']);

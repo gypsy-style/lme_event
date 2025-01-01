@@ -59,10 +59,62 @@ class settingEvent
                     'custom-fields',
                     'revisions'
                 ),
+                'taxonomies' => array('event_category', 'event_tag'), // カテゴリーとタグを追加
                 'menu_position' => 5,
             )
         );
     }
+
+    static function register_taxonomies()
+{
+    // カテゴリーの登録
+    register_taxonomy(
+        'event_category',
+        self::POST_TYPE,
+        array(
+            'labels' => array(
+                'name' => 'イベントカテゴリー',
+                'singular_name' => 'イベントカテゴリー',
+                'search_items' => 'カテゴリーを検索',
+                'all_items' => 'すべてのカテゴリー',
+                'parent_item' => '親カテゴリー',
+                'parent_item_colon' => '親カテゴリー:',
+                'edit_item' => 'カテゴリーを編集',
+                'update_item' => 'カテゴリーを更新',
+                'add_new_item' => '新しいカテゴリーを追加',
+                'new_item_name' => '新しいカテゴリー名',
+                'menu_name' => 'カテゴリー',
+            ),
+            'hierarchical' => true, // カテゴリーは階層構造を持つ
+            'show_ui' => true,
+            'show_admin_column' => true,
+            'show_in_rest' => true,
+        )
+    );
+
+    // タグの登録
+    register_taxonomy(
+        'event_tag',
+        self::POST_TYPE,
+        array(
+            'labels' => array(
+                'name' => 'イベントタグ',
+                'singular_name' => 'イベントタグ',
+                'search_items' => 'タグを検索',
+                'all_items' => 'すべてのタグ',
+                'edit_item' => 'タグを編集',
+                'update_item' => 'タグを更新',
+                'add_new_item' => '新しいタグを追加',
+                'new_item_name' => '新しいタグ名',
+                'menu_name' => 'タグ',
+            ),
+            'hierarchical' => false, // タグは階層構造を持たない
+            'show_ui' => true,
+            'show_admin_column' => true,
+            'show_in_rest' => true,
+        )
+    );
+}
 
     /**
      * カスタムフィールド追加

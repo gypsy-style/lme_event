@@ -35,14 +35,24 @@ CSS Information
 	--color-cust_secondary : #a72920;
 	--color-cust_tertiary  : #e5d0c4;
 
+	/* 自由が丘クリニック */
+	--color-cust_body      : #e5e5e5;
+	--color-cust_primary   : #85a0c0;
+	--color-cust_secondary : #2d60ac;
+	--color-cust_tertiary  : #879db8;
+
+	/* 共通 */
 	--color_line           : #22ba4f;
 	--color_pink           : #ea8b8b;
+	--color_red            : #eb6877;
+	--color_lred           : #f2dada;
+	--color_blue           : #448aca;
 	--color_sky            : #7aa1e9;
 	--color_or             : #e9983e;
 	--color_white          : #FFF;
-	--color_lglay          : #EEE;
-	--color_lglay2         : #DDD;
-	--color_glay           : #a0a0a0;
+	--color_lgray          : #EEE;
+	--color_lgray2         : #DDD;
+	--color_gray           : #a0a0a0;
 
 	--grade-base01         : rgb(116,188,229);
 	--grade01              : linear-gradient(180deg, rgba(116,188,229,1) 0%, rgba(178,221,173,1) 100%);
@@ -130,6 +140,10 @@ img {
 	color: var(--color_white);
 	text-align: center;
 }
+.lmf-title_block.tall {
+	padding: 30px 10px 50px;
+	margin-bottom: -50px;
+}
 .cust .lmf-title_block {
 	background-color: var(--color-cust_primary);
 }
@@ -163,7 +177,7 @@ img {
 	width: 36%;
 }
 .lmf-ad_block .from {
-	color: var(--color_glay);
+	color: var(--color_gray);
 	font-size: min(.75rem);
 }
 
@@ -280,13 +294,12 @@ img {
 .lmf-modal_content .inner {
 	padding: var(--gap-m);
 	border-radius: var(--radius);
-	background: #fff;
+	background: var(--color_white);
 }
 .lmf-modal_content .inner .text_block {
 	min-height: 15em;
 }
 
-/* title */
 .lmf-modal_content h2 {
 	margin-bottom: var(--gap-s);
 	font-size: min(1.375rem,4.5vw);
@@ -382,9 +395,12 @@ img {
 .shop .lmf-title_bar .label {
 	background-color: var(--color-shop_primary);
 }
+.cust .lmf-title_bar.small .label {
+	font-size: .875rem;
+}
 .cust .lmf-title_bar.gy .label ,
 .shop .lmf-title_bar.gy .label {
-	background-color: var(--color_glay);
+	background-color: var(--color_gray);
 }
 .cust .lmf-title_bar.sky .label ,
 .shop .lmf-title_bar.sky .label {
@@ -396,7 +412,7 @@ img {
 }
 .lmf-title_bar .name {
 	display: block;
-	color: var(--color_glay);
+	color: var(--color_gray);
 }
 .lmf-title_bar .label + .name {
 	margin-top: var(--gap-ms);
@@ -408,8 +424,10 @@ img {
 
 .lmf-btn_box {
 	clear: both;
-	margin-bottom: var(--gap-s);
 	text-align: center;
+}
+.lmf-btn_box:not(:last-child) {
+	margin-bottom: var(--gap-s);
 }
 .lmf-info_list + .lmf-btn_box ,
 .lmf-form_box + .lmf-btn_box {
@@ -420,7 +438,7 @@ img {
 .lmf-btn_box input ,
 .lmf-btn_box button {
 	display: inline-block;
-	min-width: 280px;
+	width: 280px;
 	max-width: 100%;
 	padding: 10px;
 	border-radius: 50vh;
@@ -450,7 +468,7 @@ img {
 .lmf-btn_box.btn_gy a ,
 .lmf-btn_box.btn_gy input ,
 .lmf-btn_box.btn_gy button {
-	background: var(--color_glay);
+	background: var(--color_gray);
 }
 .lmf-btn_box.btn_pk a ,
 .lmf-btn_box.btn_pk input ,
@@ -471,14 +489,13 @@ img {
 	padding: 10px;
 }
 .lmf-btn_box.btn_line a::before ,
-.lmf-btn_box.btn_line input::before ,
 .lmf-btn_box.btn_line button::before {
 	content: '';
 	display: inline-block;
 	margin-right: .5em;
 	margin-bottom: .1em;
-	width: 1.8em;
-	height: 1.75em;
+	width: 1.5em;
+	height: 1.4em;
 	background: url(../image/front/icon_sns_linewh.svg) no-repeat;
 	background-size: cover;
 	vertical-align: middle;
@@ -488,13 +505,13 @@ img {
 .lmf-btn_box.btn_small a ,
 .lmf-btn_box.btn_small input ,
 .lmf-btn_box.btn_small button {
-	min-width: 240px;
+	width: 240px;
 	font-size: 1rem;
 }
 .lmf-btn_box.btn_min a ,
 .lmf-btn_box.btn_min input ,
 .lmf-btn_box.btn_min button {
-	min-width: 160px;
+	width: 160px;
 	font-size: 1rem;
 	line-height: 1;
 }
@@ -511,7 +528,7 @@ img {
 /* disabled */
 .lmf-btn_box input:disabled ,
 .lmf-btn_box button:disabled {
-	background-color: var(--color_glay);
+	background-color: var(--color_gray);
 }
 
 /* アイコンボックス
@@ -530,7 +547,7 @@ img {
 	line-height: 1;
 }
 .lmf-icon_box .icon.off {
-	background-color: var(--color_glay);
+	background-color: var(--color_gray);
 }
 
 /* リスト 規約用 lmf-term_block 内
@@ -544,7 +561,7 @@ img {
 .lmf-dot_list.border ,
 .lmf-ordered_list.border {
 	padding: 1em 1em 1em 2em;
-	border: 1px solid var(--color_glay);
+	border: 1px solid var(--color_gray);
 }
 .lmf-dot_list ul ,
 .lmf-dot_list ol ,
@@ -588,7 +605,7 @@ img {
 	padding: .5em 1em;
 	border-radius: var(--radius-bar);
 	background-color: var(--color_white);
-	color: var(--color_glay);
+	color: var(--color_gray);
 	font-weight: 600;
 	text-decoration: none;
 }
@@ -644,12 +661,12 @@ img {
 }
 .lmf-pagination a {
 	display: inline-block;
-	border: 1px solid var(--color_lglay);
+	border: 1px solid var(--color_lgray);
 	text-decoration: none;
 }
 .lmf-pagination a:hover {
 	color: var(--color-text);
-	background-color: var(--color_lglay);
+	background-color: var(--color_lgray);
 }
 .lmf-pagination span {
 	display: none;
@@ -657,7 +674,7 @@ img {
 .lmf-pagination .current {
 	display: inline-block;
 	padding: 6px 8px 5px 8px;
-	border: 1px solid var(--color_lglay);
+	border: 1px solid var(--color_lgray);
 	background-color: var(--color_white);
 }
 
@@ -726,7 +743,7 @@ img {
 }
 .lmf-user_block .id {
 	margin-bottom: var(--gap-s);
-	color: var(--color_glay);
+	color: var(--color_gray);
 	font-size: min(.875rem,3.25vw);
 	font-weight: 600;
 	line-height: 1.4;
@@ -783,7 +800,7 @@ img {
 .lmf-shop_list > li:not(:last-child) {
 	margin-bottom: var(--gap-ms);
 	padding-bottom: var(--gap-ms);
-	border-bottom: 1px solid var(--color_glay);
+	border-bottom: 1px solid var(--color_gray);
 }
 .lmf-shop_list a {
 	text-decoration: none;
@@ -799,7 +816,7 @@ img {
 	display: block;
 	padding-top: calc(50px - .8em);
 	height: 100px;
-	background-color: var(--color_lglay);
+	background-color: var(--color_lgray);
 	color: var(--color-text);
 	text-align: center;
 }
@@ -809,7 +826,7 @@ img {
 	padding-bottom: 2.5em;
 }
 .lmf-shop_list .inner .info_box .name {
-	color: var(--color_glay);
+	color: var(--color_gray);
 	font-size: .9375rem;
 	text-align: right;
 }
@@ -953,7 +970,7 @@ ul.sns_list li:not(:last-child) {
 -----------------------------------------------------------*/
 
 .lmf-puse_block {
-	color: var(--color_glay);
+	color: var(--color_gray);
 }
 .lmf-puse_block h2 {
 	margin-bottom: var(--gap-m);
@@ -965,14 +982,14 @@ ul.sns_list li:not(:last-child) {
 -----------------------------------------------------------*/
 
 .lmf-record_list {
-	color: var(--color_glay);
+	color: var(--color_gray);
 	font-size: .8125rem;
 	font-weight: 600;
 }
 .lmf-record_list li:not(:last-child) {
 	margin-bottom: var(--gap-s);
 	padding-bottom: var(--gap-s);
-	border-bottom: 1px solid var(--color_glay);
+	border-bottom: 1px solid var(--color_gray);
 }
 .lmf-record_list li {
 	display: flex;
@@ -1040,14 +1057,14 @@ ul.sns_list li:not(:last-child) {
 	clear: both;
 	float: left;
 	width: 4.5em;
-	color: var(--color_glay);
+	color: var(--color_gray);
 }
 .lmf-info_list dd {
 	margin-bottom: var(--gap-s);
 	padding-left: 5em;
 	padding-bottom: var(--gap-s);
 	min-height: 2.5em;
-	border-bottom: 1px solid var(--color_glay);
+	border-bottom: 1px solid var(--color_gray);
 }
 .lmf-info_list dd.name {
 	padding-left: 4.375rem;
@@ -1096,7 +1113,7 @@ ul.sns_list li:not(:last-child) {
 .lm-entry_list li:not(:last-child) {
 	margin-bottom: var(--gap-s);
 	padding-bottom: var(--gap-s);
-	border-bottom: 1px dotted var(--color_glay);
+	border-bottom: 1px dotted var(--color_gray);
 }
 
 /* cate */
@@ -1201,7 +1218,7 @@ ul.lm-entry_list h3 {
 }
 .lmf-single_block h3.title_gy {
 	padding: 5px;
-	background-color: var(--color_lglay2);
+	background-color: var(--color_lgray2);
 	text-align: center;
 }
 .lmf-single_block p {
@@ -1392,7 +1409,260 @@ ul.lm-entry_list h3 {
 }
 
 
-/* form [use/edit/grant]
+/*-------------------------------------------------------------------------------
+ 
+ order
+ 
+-------------------------------------------------------------------------------*/
+
+/* list layput : fix bar
+-----------------------------------------------------------*/
+
+.lmf-order_fixbar {
+	position: fixed;
+	z-index: 9999;
+	top: 0;
+	left: 0;
+	width: 100%;
+	background-color: var(--color-cust_primary);
+	color: var(--color_white);
+	transition: 0.4s;
+}
+.lmf-order_fixbar .fix_contents {
+	position: relative;
+	display: flex;
+	align-items: center;
+	max-width: 620px;
+	margin: 0 auto;
+	padding: var(--gap-s);
+}
+.lmf-order_fixbar .fix_contents .fix_price_txt ,
+.lmf-order_fixbar .fix_contents .fix_count_txt {
+	display: block;
+	flex: 1;
+	padding: 5px 0;
+	text-align: center;
+}
+.lmf-order_fixbar .fix_contents .fix_price_txt .fix_price ,
+.lmf-order_fixbar .fix_contents .fix_count_txt .fix_count {
+	font-weight: 600;
+}
+.lmf-order_fixbar .fix_contents .fix_btn_box {
+	flex: 1;
+	text-align: right;
+}
+.lmf-order_fixbar .fix_contents .fix_btn {
+	display: inline-block;
+	padding: var(--gap-bar);
+	border-radius: 50vh;
+	background: var(--color_red);
+	color: var(--color_white);
+	font-size: .875rem;
+	text-decoration: none;
+}
+.lmf-order_fixbar .fix_tabs {
+	padding-bottom: 10px;
+}
+.lmf-itemlist_block {
+	padding-top: 105px;
+	background-color: var(--color_white);
+}
+
+
+/* splide
+------------------------------------------------------------- */
+
+/* タブ */
+.thumb_splide .splide__track--nav>.splide__list>.splide__slide ,
+.thumb_splide .splide__track--nav>.splide__list>.splide__slide.is-active {
+	padding: 0 0 0 1em;
+	border: none;
+}
+.thumb_splide .splide__track--nav>.splide__list>.splide__slide.is-active .label {
+	display: inline-block;
+	padding: 0 .5em;
+	border-bottom: 4px solid var(--color_white);
+}
+
+/* メイン */
+.main_splide .lmf-item_list {
+	overflow: hidden;
+	overflow-y: auto;
+	height: calc(100vh - 108px);
+}
+.main_splide .lmf-item_list li {
+	padding: 15px 20px;
+	box-sizing: border-box;
+}
+
+
+/* set list
+-----------------------------------------------------------*/
+
+.lmf-white_block .lmf-item_list li {
+	padding: 15px 0;
+}
+
+.lmf-item_list li.is_selected ,
+.lmf-item_list.vartical li.is_selected {
+	background-color: var(--color_lred);
+	border-bottom: 1px solid var(--color_white);
+}
+
+.lmf-item_list li.is-hide {
+	display: none;
+}
+
+.lmf-item_list.card {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 -10px 20px;
+	text-align: center;
+}
+.lmf-item_list.card li {
+	width: 50%;
+}
+
+/* vartical */
+.lmf-item_list.vartical li {
+	border-bottom: 1px solid var(--color_lgray);
+}
+.lmf-item_list.vartical .item_wrap {
+	display: flex;
+	align-items: flex-start;
+}
+.lmf-item_list.vartical .item_wrap .item_fig {
+	display: block;
+	width: 90px;
+	margin-right: 15px;
+}
+.lmf-item_list.vartical .item_wrap .item_info {
+	flex: 1;
+}
+.lmf-item_list.vartical .item_cartin {
+	text-align: right;
+}
+
+/* card */
+.lmf-item_list.card .item_fig {
+	display: block;
+	margin: 0 0 10px;
+}
+
+/* name */
+.lmf-item_list .item_name {
+	display: block;
+	margin-bottom: 5px;
+	font-size: .875rem;
+	font-weight: 600;
+	line-height: 1.4;
+}
+.lmf-item_list .item_unit-quantity {
+	margin-bottom: var(--gap-ss);
+	font-size: .8125rem;
+}
+.lmf-item_list .item_price ,
+.lmf-order_total .item_price {
+	display: block;
+	font-size: 1.25rem;
+	color: var(--color_red);
+}
+.lmf-item_list .item_price .tax ,
+.lmf-order_total .item_price .tax {
+	font-size: 75%;
+}
+.lmf-item_list .item_stock {
+	display: inline-block;
+	width: 5em;
+	margin-top: .5em;
+	color: var(--color_lgray);
+	text-align: center;
+}
+
+/* 購入増減削除 : +/- */
+.lmf-item_list .item_cartin button {
+	width: 30px;
+	height: 30px;
+	border-radius: 4px;
+	color: var(--color_white);
+	text-align: center;
+	line-height: 20px;
+	vertical-align: middle;
+}
+.lmf-item_list button.del {
+	width: 3em;
+	height: 30px;
+	margin-right: 5px;
+	background-color: var(--color_gray);
+	color: var(--color_white);
+	font-size: .875rem;
+	text-align: center;
+	line-height: 20px;
+	vertical-align: middle;
+}
+.lmf-item_list .item_cartin input[type="text"] {
+	width: 2em;
+	height: 32px;
+	margin: 0 5px;
+	padding: 0;
+	border-radius: 4px;
+	border: 1px solid var(--color_lgray);
+	background-color: var(--color_white);
+	text-align: center;
+	line-height: 1;
+	vertical-align: middle;
+}
+.lmf-item_list button.minus {
+	background-color: var(--color_blue);
+}
+.lmf-item_list button.plus {
+	background-color: var(--color_red);
+}
+
+
+/* total
+-----------------------------------------------------------*/
+
+.lmf-order_total {
+	display: flex;
+	justify-content: space-between;
+	margin: 20px 0 20px;
+	font-size: 1.25rem;
+}
+.lmf-order_total > * {
+	display: block;
+}
+
+
+/* record
+-----------------------------------------------------------*/
+
+.lmf_order_info_list {
+	margin: var(--gap-ms) 0;
+	padding-bottom: var(--gap-ss);
+	border-bottom: 1px solid var(--color_gray);
+}
+.lmf_order_info_list li {
+	display: flex;
+	justify-content: space-between;
+	padding-bottom: var(--gap-ss);
+	font-size: min(1rem,4vw);
+}
+.lmf_order_info_list li > * {
+	display: block;
+}
+.lmf_order_info_list .text {
+	font-weight: 600;
+}
+
+
+/*-------------------------------------------------------------------------------
+ 
+ form [use/edit/grant]
+ 
+-------------------------------------------------------------------------------*/
+
+/* form
 -----------------------------------------------------------*/
 
 .lmf-form_box dt {
@@ -1404,7 +1674,7 @@ ul.lm-entry_list h3 {
 }
 .lmf-form_box dt label ,
 .lmf-form_box dd:not(.center):not(.left) label {
-	color: var(--color_glay);
+	color: var(--color_gray);
 	font-size: min(.875rem);
 }
 .lmf-form_box dd.horizontal label {
@@ -1427,7 +1697,7 @@ ul.lm-entry_list h3 {
 	font-size: inherit;
 }
 .lmf-form_box dd.percentage {
-	color: var(--color_glay);
+	color: var(--color_gray);
 	font-size: min(.9375rem,3.5vw);
 	font-weight: 600;
 }
@@ -1483,6 +1753,14 @@ ul.lm-entry_list h3 {
 	color: var(--color-shop_primary);
 }
 
+/* checkbox / radio : list */
+.form_ctrl li:not(:last-child) {
+	margin-bottom: var(--gap-ss);
+}
+.form_ctrl_inline li {
+	display: inline-block;
+}
+
 /* input / select / textarea */
 .lmf-form_box input[type="text"] ,
 .lmf-form_box input[type="email"] ,
@@ -1496,7 +1774,7 @@ ul.lm-entry_list h3 {
 .lmf-form_box input[type="search"] ,
 .lmf-form_box textarea ,
 .lmf-form_box select {
-	border: 1px solid var(--color_glay);
+	border: 1px solid var(--color_gray);
 	border-radius: 10px;
 }
 .lmf-form_box input[type="text"] ,
@@ -1526,6 +1804,16 @@ ul.lm-entry_list h3 {
 .lmf-form_box textarea {
 	width: 100%;
 }
+
+/* 規約 */
+.lmf-form_terms {
+	overflow-y: auto;
+	height: 150px;
+	margin-bottom: 15px;
+	padding: 10px 0 10px 10px;
+	border: 1px solid var(--color_gray);
+}
+
 
 /* /////////////////////////////////////////////////////////////////////////////
 

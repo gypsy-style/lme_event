@@ -7,24 +7,21 @@
  */
 //require_once('../extensions/custom_fields.php');
 require_once (plugin_dir_path( plugin_dir_path( __FILE__)).'extensions/custom_fields.php');
-class settingPointHistory {
+class settingEntryHistory {
 
-    const LABEL = 'ポイント履歴';
-    const POST_TYPE = 'point_history';
+    const LABEL = '申し込み履歴';
+    const POST_TYPE = 'entry_history';
 
     static $fields = [
-        'point_number'=>'ポイント数',
-        'point_rate'=>'ポイント付与率',
-        'price'=>'ご利用金額',
         'user_id'=>'ユーザーID',
-        'point_type'=>'付与 OR 使用',
-        'store_id'=>'店舗'
+        'event_id'=>'店舗',
+        'event_types'=>'参加タイプ'
     ];
 
     /**
      * LINEユーザーのカスタム投稿タイプ作成
      */
-    static function set_point_history_post_type()
+    static function set_entry_history_post_type()
     {
         $label = self::LABEL;
         $post_type = self::POST_TYPE;
@@ -65,7 +62,7 @@ class settingPointHistory {
      * カスタムフィールド追加
      * @return void 
      */
-    static function create_point_history_custom_fields()
+    static function create_entry_history_custom_fields()
     {
         $fields = self::$fields;
 
@@ -74,58 +71,14 @@ class settingPointHistory {
             add_meta_box(
                 $value, //編集画面セクションID
                 $name, //編集画面セクションのタイトル
-                ['settingPointHistory','show_'.$value], //編集画面セクションにHTML出力する関数
-                'point_history', //投稿タイプ名
+                ['settingEntryHistory','show_'.$value], //編集画面セクションにHTML出力する関数
+                'entry_history', //投稿タイプ名
                 'normal', //編集画面セクションが表示される部分
             );
         }
     }
 
-    /**
-     * エラー日時のカスタムフィールド
-     * @param mixed $post 
-     * @return void 
-     */
-    static function show_point_number($post)
-    {
-        $post_id = $post->ID;
-        $value = get_post_meta($post_id,'point_number',true);
-        ?>
-        <label for="point_number">ポイント数</label>
-        <input type="text" id="point_number" name="point_number" value="<?=$value;?>">
-        <?php
-    }
 
-    /**
-     * エラー日時のカスタムフィールド
-     * @param mixed $post 
-     * @return void 
-     */
-    static function show_point_rate($post)
-    {
-        $post_id = $post->ID;
-        $value = get_post_meta($post_id,'point_rate',true);
-        ?>
-        <label for="point_rate">ポイント付与率</label>
-        <input type="text" id="point_rate" name="point_rate" value="<?=$value;?>">
-        <?php
-    }
-
-    /**
-     * エラー日時のカスタムフィールド
-     * @param mixed $post 
-     * @return void 
-     */
-    static function show_price($post)
-    {
-        $post_id = $post->ID;
-        $value = get_post_meta($post_id,'price',true);
-        ?>
-        <label for="price">ご利用金額</label>
-        <input type="text" id="price" name="price" value="<?=$value;?>">
-        <?php
-    }
-    
     /**
      * エラー日時のカスタムフィールド
      * @param mixed $post 
@@ -140,6 +93,22 @@ class settingPointHistory {
         <input type="text" id="user_id" name="user_id" value="<?=$value;?>">
         <?php
     }
+
+    /**
+     * エラー日時のカスタムフィールド
+     * @param mixed $post 
+     * @return void 
+     */
+    static function show_entry_id($post)
+    {
+        $post_id = $post->ID;
+        $value = get_post_meta($post_id,'entry_id',true);
+        ?>
+        <label for="entry_id">イベント ID</label>
+        <input type="text" id="entry_id" name="entry_id" value="<?=$value;?>">
+        <?php
+    }
+
 
     /**
      * エラーメッセージのカスタムフィールド
