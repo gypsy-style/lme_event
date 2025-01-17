@@ -553,6 +553,7 @@ class settings {
         // wp_enqueue_script('jqueryUI','https://code.jquery.com/ui/1.13.2/jquery-ui.js');
         // wp_enqueue_script('jquery-ui-core');
 wp_enqueue_script('jquery-ui-datepicker');
+wp_enqueue_media();
         wp_enqueue_script(
             'common-line_user',
             plugins_url('js/common.js',dirname(__FILE__))
@@ -666,25 +667,12 @@ wp_enqueue_script('jquery-ui-datepicker');
     {
         register_setting('line_user', 'channnel_access_token');
         register_setting('line_user', 'channnel_access_token_secret');
-        register_setting('line_user', 'liff_id_form');
-        register_setting('line_user', 'liff_id_profile');
-        register_setting('line_user', 'liff_id_profile_edit');
-        register_setting('line_user', 'liff_id_update_point');
-        register_setting('line_user', 'liff_id_point_history');
-        register_setting('line_user', 'liff_id_get_point');
-        register_setting('line_user', 'liff_id_point_card');
-        register_setting('line_user', 'liff_id_point_use');
+        register_setting('line_user', 'liff_id_register');
+        register_setting('line_user', 'liff_id_event_entry_list');
+        register_setting('line_user', 'liff_id_event_list');
+        register_setting('line_user', 'liff_id_event_entry');
+        register_setting('line_user', 'liff_id_event_schedule');
 
-        // 店舗側
-        register_setting('line_user', 'liff_id_store_register');
-        register_setting('line_user', 'liff_id_store_update');
-        register_setting('line_user', 'liff_id_store_info');
-        register_setting('line_user', 'liff_id_store_member');
-        register_setting('line_user', 'liff_id_store_point_history');
-        register_setting('line_user', 'liff_id_store_point_history_month');
-        register_setting('line_user', 'liff_id_store_give_point');
-        register_setting('line_user', 'liff_id_store_add_member');
-        register_setting('line_user', 'liff_id_store_point_get');
 
 
 
@@ -730,43 +718,16 @@ wp_enqueue_script('jquery-ui-datepicker');
                         <div class="inside">
                             <h4 class=''><span>メンバー</span></h4>
                             <div class="main">
-                                <h4>フォーム用 <input id="copy_webhook" type="text" class="regular-text" value="<?=plugins_url().'/line-members/registration.php';?>" readonly> <span onclick="copyToClipboard('copy_webhook')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_form" value="<?php echo get_option('liff_id_form'); ?>"></p>
-                                <h4>データ確認用 <input id="copy_richmenu_profile" type="text" class="regular-text" value="<?=plugins_url().'/line-members/profile.php';?>" readonly> <span onclick="copyToClipboard('copy_richmenu_profile')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_profile" value="<?php echo get_option('liff_id_profile'); ?>"></p>
-                                <h4>データ更新用 <input id="copy_richmenu_profile_edit" type="text" class="regular-text" value="<?=plugins_url().'/line-members/update.php';?>" readonly> <span onclick="copyToClipboard('copy_richmenu_profile_edit')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_profile_edit" value="<?php echo get_option('liff_id_profile_edit'); ?>"></p>
-                                <h4>ポイントアップ用 <input id="copy_update_point" type="text" class="regular-text" value="<?=plugins_url().'/line-members/update_by_qr.php';?>" readonly> <span onclick="copyToClipboard('copy_update_point')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_update_point" value="<?php echo get_option('liff_id_update_point'); ?>"></p>
-                                <h4>ポイント履歴用 <input id="copy_point_history" type="text" class="regular-text" value="<?=plugins_url().'/line-members/point_history.php';?>" readonly> <span onclick="copyToClipboard('copy_point_history')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_point_history" value="<?php echo get_option('liff_id_point_history'); ?>"></p>
-                                <h4>ポイント付与用 <input id="copy_get_point" type="text" class="regular-text" value="<?=plugins_url().'/line-members/get_point.php';?>" readonly> <span onclick="copyToClipboard('copy_get_point')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_get_point" value="<?php echo get_option('liff_id_get_point'); ?>"></p>
-                                <h4>ポイントカード <input id="copy_point_card" type="text" class="regular-text" value="<?=plugins_url().'/line-members/point_card.php';?>" readonly> <span onclick="copyToClipboard('copy_point_card')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_point_card" value="<?php echo get_option('liff_id_point_card'); ?>"></p>
-                                <h4>ポイント利用 <input id="copy_point_use" type="text" class="regular-text" value="<?=plugins_url().'/line-members/point_use.php';?>" readonly> <span onclick="copyToClipboard('copy_point_use')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_point_use" value="<?php echo get_option('liff_id_point_use'); ?>"></p>
-                            </div>
-                            <h4 class=''><span>店舗</span></h4>
-                            <div class="main">
-                                <h4>店舗登録 <input id="copy_store_registration" type="text" class="regular-text" value="<?=plugins_url().'/line-members/store/registration.php';?>" readonly> <span onclick="copyToClipboard('copy_store_registration')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_store_register" value="<?php echo get_option('liff_id_store_register'); ?>"></p>
-                                <h4>店舗更新 <input id="copy_store_update" type="text" class="regular-text" value="<?=plugins_url().'/line-members/store/update.php';?>" readonly> <span onclick="copyToClipboard('copy_store_update')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_store_update" value="<?php echo get_option('liff_id_store_update'); ?>"></p>
-                                <h4>店舗情報 <input id="copy_richmenu_profile" type="text" class="regular-text" value="<?=plugins_url().'/line-members/store/store_info.php';?>" readonly> <span onclick="copyToClipboard('copy_richmenu_profile')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_store_info" value="<?php echo get_option('liff_id_store_info'); ?>"></p>
-                                <h4>店舗スタッフ確認 <input id="copy_richmenu_profile_edit" type="text" class="regular-text" value="<?=plugins_url().'/line-members/store/store_member.php';?>" readonly> <span onclick="copyToClipboard('copy_richmenu_profile_edit')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_store_member" value="<?php echo get_option('liff_id_store_member'); ?>"></p>
-                                <h4>ポイント付与 <input id="copy_update_point" type="text" class="regular-text" value="<?=plugins_url().'/line-members/store/give_point.php';?>" readonly> <span onclick="copyToClipboard('copy_update_point')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_store_give_point" value="<?php echo get_option('liff_id_store_give_point'); ?>"></p>
-                                <h4>ポイント履歴用 <input id="copy_point_history" type="text" class="regular-text" value="<?=plugins_url().'/line-members/store/store_point_history.php';?>" readonly> <span onclick="copyToClipboard('copy_point_history')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_store_point_history" value="<?php echo get_option('liff_id_store_point_history'); ?>"></p>
-                                <h4>月別ポイント履歴用 <input id="copy_point_history_month" type="text" class="regular-text" value="<?=plugins_url().'/line-members/store/store_point_history_month.php';?>" readonly> <span onclick="copyToClipboard('copy_point_history_month')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_store_point_history_month" value="<?php echo get_option('liff_id_store_point_history_month'); ?>"></p>
-                                <h4>スタッフ追加用 <input id="copy_store_add_member" type="text" class="regular-text" value="<?=plugins_url().'/line-members/store/store_add_member.php';?>" readonly> <span onclick="copyToClipboard('copy_store_add_member')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_store_add_member" value="<?php echo get_option('liff_id_store_add_member'); ?>"></p>
-                                <h4>ポイントを貯める <input id="copy_store_point_get" type="text" class="regular-text" value="<?=plugins_url().'/line-members/store/store_get_point.php';?>" readonly> <span onclick="copyToClipboard('copy_store_point_get')">コピー</span></h4>
-                                <p><input type="text" id="liff_id" name="liff_id_store_point_get" value="<?php echo get_option('liff_id_store_point_get'); ?>"></p>
+                                <h4>会員登録用 <input id="copy_webhook" type="text" class="regular-text" value="<?=plugins_url().'/line-members/registration.php';?>" readonly> <span onclick="copyToClipboard('copy_webhook')">コピー</span></h4>
+                                <p><input type="text" id="liff_id" name="liff_id_register" value="<?php echo get_option('liff_id_register'); ?>"></p>
+                                <h4>申し込みリスト用 <input id="copy_richmenu_profile" type="text" class="regular-text" value="<?=plugins_url().'/line-members/event_entry_list.php';?>" readonly> <span onclick="copyToClipboard('copy_richmenu_profile')">コピー</span></h4>
+                                <p><input type="text" id="liff_id" name="liff_id_event_entry_list" value="<?php echo get_option('liff_id_event_entry_list'); ?>"></p>
+                                <h4>申し込みページ用 <input id="copy_richmenu_profile" type="text" class="regular-text" value="<?=plugins_url().'/line-members/event_entry.php';?>" readonly> <span onclick="copyToClipboard('copy_richmenu_profile')">コピー</span></h4>
+                                <p><input type="text" id="liff_id" name="liff_id_event_entry" value="<?php echo get_option('liff_id_event_entry'); ?>"></p>
+                                <h4>イベントリスト用 <input id="copy_richmenu_profile" type="text" class="regular-text" value="<?=plugins_url().'/line-members/event_list.php';?>" readonly> <span onclick="copyToClipboard('copy_richmenu_profile')">コピー</span></h4>
+                                <p><input type="text" id="liff_id" name="liff_id_event_list" value="<?php echo get_option('liff_id_event_list'); ?>"></p>
+                                <h4>イベントスケジュール用 <input id="copy_richmenu_profile" type="text" class="regular-text" value="<?=plugins_url().'/line-members/event_schedule.php';?>" readonly> <span onclick="copyToClipboard('copy_richmenu_profile')">コピー</span></h4>
+                                <p><input type="text" id="liff_id" name="liff_id_event_schedule" value="<?php echo get_option('liff_id_event_schedule'); ?>"></p>
                             </div>
                         </div>
                     </div>

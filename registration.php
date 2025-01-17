@@ -71,6 +71,7 @@ $show_banner = get_option('show_banner');
             ?>
             // 追加
             initializeLiff("<?= $liff_id_form; ?>");
+
             $('#form').submit(function(event) {
                 event.preventDefault();
                 let type = 'register';
@@ -109,23 +110,21 @@ $show_banner = get_option('show_banner');
                         }
                     }
                 });
-                // pushMessage.push('お誕生日：'+post['birthday_y']+'年'+post['birthday_m']+'月');
-                post['line_id'] = userId;
-                post['displayName'] = displayName;
+                // アクセストークンをセット
+                post['access_token'] = accessToken;
                 // return false;
                 pushMessage = pushMessage.join('\n');
                 liff.sendMessages([{
                     type: 'text',
                     text: pushMessage
                 }]);
-                // console.log(post);
-                // return false;
                 $.ajax({
                     type: "GET",
                     url: "<?= home_url(); ?>/wp-json/wp/v2/register_line_user",
                     dataType: "text",
                     data: post
                 }).done(function(response) {
+                    console.log(response);
                     liff.closeWindow();
                 }).fail(function(XMLHttpRequest, textStatus, errorThrown) {
                     alert(errorThrown);
@@ -155,22 +154,10 @@ $show_banner = get_option('show_banner');
         let userId;
         let displayName;
         let post;
+        let accessToken;
 
         getProfile = function() {
-            console.log('getprofile called');
-            liff.getProfile()
-                .then(profile => {
-                    console.log(profile);
-                    console.log(profile.userId);
-                    userId = profile.userId;
-                    displayName = profile.displayName;
-
-
-                })
-                .catch((err) => {
-                    console.log("Profileが取得できません")
-                    // alert("liff getProfile error : " + err);
-                });
+            accessToken = liff.getAccessToken();
         };
     </script>
 </head>

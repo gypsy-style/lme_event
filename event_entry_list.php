@@ -28,7 +28,7 @@ $categories = get_categories(array(
     <link href="./css/default.css" rel="stylesheet" media="all">
     <link href="./css/front.css" rel="stylesheet" media="all">
 
-    <title>スケジュール</title>
+    <title>申し込み</title>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" type="text/javascript"></script>
     <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
     <script>
@@ -47,12 +47,12 @@ $categories = get_categories(array(
                 }
             });
             <?php
-            $liff_id_event_list = get_option('liff_id_event_list');
+            $liff_id_event_entry_list = get_option('liff_id_event_entry_list');
             $after_registration_action = get_option('after_registration_action');
             $liff_id_profile = get_option('liff_id_profile');
             ?>
             // 追加
-            initializeLiff("<?= $liff_id_event_list; ?>");
+            initializeLiff("<?= $liff_id_event_entry_list; ?>");
 
         });
 
@@ -86,7 +86,7 @@ $categories = get_categories(array(
             
             $.ajax({
                     type: "GET",
-                    url: "<?= home_url(); ?>/wp-json/wp/v2/event_list",
+                    url: "<?= home_url(); ?>/wp-json/wp/v2/event_entry_list",
                     dataType: "json",
                     data: post
                 }).done(function(response) {
@@ -103,7 +103,7 @@ $categories = get_categories(array(
 <body class="lmf-schedule_body cust">
     <div class="lmf-container">
         <div class="lmf-title_block">
-            <h1 class="title">スケジュール</h1>
+            <h1 class="title">申し込み</h1>
         </div>
         <main class="lmf-main_contents">
             <section class="lmf-content">

@@ -14,7 +14,7 @@ class settingEntryHistory {
 
     static $fields = [
         'user_id'=>'ユーザーID',
-        'event_id'=>'店舗',
+        'event_id'=>'イベントID',
         'event_types'=>'参加タイプ'
     ];
 
@@ -99,45 +99,29 @@ class settingEntryHistory {
      * @param mixed $post 
      * @return void 
      */
-    static function show_entry_id($post)
+    static function show_event_types($post)
     {
         $post_id = $post->ID;
-        $value = get_post_meta($post_id,'entry_id',true);
+        $value = get_post_meta($post_id,'event_types',true);
         ?>
-        <label for="entry_id">イベント ID</label>
-        <input type="text" id="entry_id" name="entry_id" value="<?=$value;?>">
+        <label for="event_types">イベントタイプ</label>
+        <input type="text" id="event_types" name="event_types" value="<?=$value;?>">
         <?php
     }
 
-
-    /**
-     * エラーメッセージのカスタムフィールド
-     * @param mixed $post 
-     * @return void 
-     */
-    static function show_point_type($post)
-    {
-        $post_id = $post->ID;
-        $value = get_post_meta($post_id,'point_type',true);
-        ?>
-        <label for="point_type_give">ポイント付与種別</label>
-        <input type="radio" id="point_type_give" name="point_type" value="付与" <?php checked( $value, '付与' ); ?>> 付与　
-        <input type="radio" id="point_type_give" name="point_type" value="使用" <?php checked( $value, '使用' ); ?>> 使用
-        <?php
-    }
 
     /**
      * 店舗ID
      * @param mixed $post 
      * @return void 
      */
-    static function show_store_id($post)
+    static function show_event_id($post)
     {
         $post_id = $post->ID;
-        $value = get_post_meta($post_id,'store_id',true);
+        $value = get_post_meta($post_id,'event_id',true);
         ?>
-        <label for="store_id">店舗 ID</label>
-        <input type="text" id="store_id" name="store_id" value="<?=$value;?>">
+        <label for="event_id">イベント ID</label>
+        <input type="text" id="event_id" name="event_id" value="<?=$value;?>">
         <?php
     }
 

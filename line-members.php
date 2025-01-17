@@ -7,6 +7,7 @@ Version: 1.0
 Author: GYPSY-STYLE
 Author URI:
 */
+require_once (plugin_dir_path(__FILE__ ).'includes/functions.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/settings.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_line_user.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_error_log.php');
