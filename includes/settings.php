@@ -672,6 +672,7 @@ wp_enqueue_media();
         register_setting('line_user', 'liff_id_event_list');
         register_setting('line_user', 'liff_id_event_entry');
         register_setting('line_user', 'liff_id_event_schedule');
+        register_setting('line_user', 'liff_id_event_checkin');
 
 
 
@@ -728,6 +729,8 @@ wp_enqueue_media();
                                 <p><input type="text" id="liff_id" name="liff_id_event_list" value="<?php echo get_option('liff_id_event_list'); ?>"></p>
                                 <h4>イベントスケジュール用 <input id="copy_richmenu_profile" type="text" class="regular-text" value="<?=plugins_url().'/line-members/event_schedule.php';?>" readonly> <span onclick="copyToClipboard('copy_richmenu_profile')">コピー</span></h4>
                                 <p><input type="text" id="liff_id" name="liff_id_event_schedule" value="<?php echo get_option('liff_id_event_schedule'); ?>"></p>
+                                <h4>イベントチェックイン用 <input id="copy_richmenu_checkin" type="text" class="regular-text" value="<?=plugins_url().'/line-members/event_checkin.php';?>" readonly> <span onclick="copyToClipboard('copy_richmenu_checkin')">コピー</span></h4>
+                                <p><input type="text" id="liff_id" name="liff_id_event_checkin" value="<?php echo get_option('liff_id_event_checkin'); ?>"></p>
                             </div>
                         </div>
                     </div>

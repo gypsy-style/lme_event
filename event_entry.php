@@ -20,6 +20,7 @@ $tags = [];
 $tag_names = [];
 $event_subtitle = '';
 $event_date = '';
+$event_date_override = '';
 $event_time = '';
 $event_venue = '';
 $event_address = '';
@@ -39,6 +40,8 @@ $formatted_tag_icon = '';
 $formatted_event_checkbox = '';
 $event_types_array = [];
 $event_id = isset($_GET['event_id']) ? $_GET['event_id'] : 0;
+$user_id = isset($_GET['user_id']) ? $_GET['user_id'] : 0;
+$event_schedule_link = '';
 
 // 投稿データの取得
 $event_post = get_post($event_id);
@@ -71,6 +74,7 @@ if ($event_post && $event_post->post_type === 'event') {
 	// カスタムフィールド
 	$event_subtitle = get_post_meta($event_id, 'event_subtitle', true);
 	$event_date = get_post_meta($event_id, 'event_date', true);
+	$event_date_override = get_post_meta($event_id, 'event_date_override', true);
 	$event_time = get_post_meta($event_id, 'event_time', true);
 	$event_venue = get_post_meta($event_id, 'event_venue', true);
 	$event_address = !empty(get_post_meta($event_id, 'event_address', true)) ? get_post_meta($event_id, 'event_address', true) : '';
@@ -84,10 +88,17 @@ if ($event_post && $event_post->post_type === 'event') {
 	$event_types = get_post_meta($event_id, 'event_types', true);
 	$weekdays = get_weekdays();
 
+	// scheduleへのリンク
+	$liff_id_event_schedule = get_option('liff_id_event_schedule');
+	$event_schedule_link = 'https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '&user_id=' . $user_id;
+
 	if (!empty($event_date)) {
 		$date = new DateTime($event_date);
 		// 整形した日付を生成
 		$formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
+		if(!empty($event_date_override)) {
+			$formatted_date = $event_date_override;
+		}
 	}
 
 	$formatted_event_icon = '';
@@ -110,12 +121,16 @@ if ($event_post && $event_post->post_type === 'event') {
 	if ($tags && !is_wp_error($tags)) {
 		echo '<div class="event-tags">';
 		foreach ($tags as $tag) {
+			$icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
+			if (!$icon_class_name) {
+				$icon_class_name = 'icon_or';
+			}
 			// タグ名を <span> で囲む
-			$formatted_tag_icon .= '<span class="icon">' . esc_html($tag->name) . '</span>';
+			$formatted_tag_icon .= '<span class="icon '.$icon_class_name.'">' . esc_html($tag->name) . '</span>';
 		}
 	}
 } else {
-	echo '<p>指定されたIDの投稿が見つかりません。</p>';
+	// echo '<p>指定されたIDの投稿が見つかりません。</p>';
 }
 
 ?>
@@ -168,17 +183,23 @@ if ($event_post && $event_post->post_type === 'event') {
 							return;
 						}
 
+
+						const comment = document.querySelector('textarea[name="comment"]').value;
+						console.log(selectedEventTypes)
+						console.log(comment)
 						const postData = {
 							event_id: eventId,
 							access_token: accessToken,
-							event_types: selectedEventTypes
+							event_types: selectedEventTypes,
+							comment: comment,
+							_wpnonce: "<?= wp_create_nonce('wp_rest'); ?>" // CSRFトークンを送信
 						};
 
 						// AJAXリクエストを送信
 						$.ajax({
 							type: "POST", // 非同期GETリクエスト
 							url: "<?= home_url(); ?>/wp-json/wp/v2/entry_request",
-							dataType: "text",
+							dataType: "json",
 							data: postData
 						}).done(function(response) {
 
@@ -212,38 +233,11 @@ if ($event_post && $event_post->post_type === 'event') {
 				</ul>
 				<div class="lmf-single_block schedule lmf-white_block">
 					<div class="lmf-icon_box"><?= $formatted_tag_icon; ?></div>
+					<p class="data_box"><?= esc_html($formatted_date); ?></p>
 					<h2><?= $title; ?></h2>
-					<?= !empty($event_subtitle) ? '<h3>' . esc_html($event_subtitle) . '</h3>' : ''; ?>
-					<dl class="lmf-info_list--v">
-						<dt>開催日時</dt>
-						<dd>
-							<?=esc_html($formatted_date);?><br>
-							<?= nl2br(esc_html($event_time)); ?>
-						</dd>
-						<dt>会場</dt>
-						<dd>
-							<?=esc_html($event_venue);?><br>
-							<?=esc_html($event_address);?>
-							<?php
-							if(!empty($event_map)):?>
-							<br><a href="<?=esc_html($event_map);?>">Google MAP</a>
-							<?php
-							endif;?>
-						</dd>
-						<dt>参加費</dt>
-						<dd><?=esc_html($entry_fee);?></dd>
-						<dt>講師</dt>
-						<dd>
-							<?=esc_html($speaker_name);?><br>
-							<?=esc_html($speaker_profile);?>
-						</dd>
-						<dt>担当委員会</dt>
-						<dd>
-							<?=esc_html($event_committee);?><br>
-							<?=esc_html($event_chairperson);?><br>
-							<?=esc_html($contact_phone);?>
-						</dd>
-					</dl>
+
+					<p class="lmf-link_box right"><a href="<?= $event_schedule_link; ?>">イベント詳細はこちら</a></p>
+					<hr>
 					<form action="process_form.php" method="POST">
 						<input type="hidden" name="event_id" value="<?= esc_attr($event_id); ?>">
 						<input type="hidden" name="access_token" id="accessToken">
@@ -253,10 +247,15 @@ if ($event_post && $event_post->post_type === 'event') {
 							<dd class="left">
 								<?= $formatted_event_checkbox; ?>
 							</dd>
+							<dt>メッセージ</dt>
+							<dd><textarea name="comment" rows="4"></textarea></dd>
 						</dl>
 						<p class="lmf-btn_box"><button type="submit">申し込む</button></p>
 					</form>
 				</div>
+				<ul class="lmf-pnavi_list clearfix">
+					<li class="back"><a href="event_entry_list.php">一覧へ戻る</a></li>
+				</ul>
 			</section>
 		</main>
 	</div><!-- /.lmf-container -->

@@ -15,6 +15,7 @@ require_once (plugin_dir_path(__FILE__ ).'includes/setting_entry_history.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_store_member.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_store_banner.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/setting_event.php');
+require_once (plugin_dir_path(__FILE__ ).'includes/setting_event_checkin.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/endpoints.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/endpoints_store.php');
 require_once (plugin_dir_path(__FILE__ ).'includes/endpoints_admin.php');
@@ -69,6 +70,17 @@ class lineMembers {
         add_action('admin_menu',['settingEvent','create_event_custom_fields']);
         add_action('save_post', ['settingEvent','save_custom_fields'] );
         add_action('init', ['settingEvent', 'register_taxonomies']);
+        // イベントタグフィールド追加
+        add_filter('event_tag_add_form_fields', ['settingEvent','add_event_tag_custom_fields_create']);
+        add_filter('event_tag_edit_form_fields', ['settingEvent','add_event_tag_custom_fields']);
+        add_filter('edited_event_tag', ['settingEvent','save_event_tag_custom_fields']);
+        
+
+        // イベントチェックイン
+        add_action('init',['settingEventCheckin','set_event_checkin_post_type']);
+        add_action('admin_menu',['settingEventCheckin','create_event_checkin_custom_fields']);
+        add_action('save_post', ['settingEventCheckin','save_custom_fields'] );
+        
 
         add_action('add_metaboxes',['settings','set_line_user_custom_fields']);
         add_action('admin_init', ['settings','register_custom_setting']);

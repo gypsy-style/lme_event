@@ -17,6 +17,7 @@ class settingEvent
         'event_image' => 'イベント画像', // 画像
         'event_subtitle' => 'イベントサブタイトル', // テキスト
         'event_date' => '開催日時', // 日付（xxxx年xx月xx日 xx時xx分）
+        'event_date_override' => '開催日時の上書き', // 日付（xxxx年xx月xx日 xx時xx分）
         'event_time' => '開催時間', // テキスト
         'event_venue' => '会場', // テキスト
         'event_address' => '会場住所', // テキストエリア
@@ -29,6 +30,11 @@ class settingEvent
         'speaker_name' => '講師名', // テキスト
         'speaker_profile' => '講師プロフィール', // テキストエリア
         'event_types' => 'イベントタイプ', // テキスト
+        'event_checkin' => 'イベントチェックインURL', // テキスト
+    ];
+
+    static $tag_fields = [
+        'icon_color' => 'アイコン色'
     ];
 
     /**
@@ -181,6 +187,15 @@ class settingEvent
     <?php
     }
 
+    static function render_field_event_date_override($post)
+    {
+        $value = get_post_meta($post->ID, 'event_date_override', true);
+    ?>
+
+        <input type="text" id="event_date_override" name="event_date_override" value="<?= esc_attr($value); ?>" class="large-text">
+    <?php
+    }
+
     static function render_field_event_time($post)
     {
         $value = get_post_meta($post->ID, 'event_time', true);
@@ -282,6 +297,16 @@ class settingEvent
 <?php
     }
 
+    static function render_field_event_checkin($post)
+    {
+        $liff_id_event_checkin = get_option('liff_id_event_checkin');
+        $checkin_url = 'https://liff.line.me/'.$liff_id_event_checkin.'/?event_id='.$post->ID;
+
+    ?>
+    <input type="text" disabled id="event_checkin" name="event_checkin" class="large-text" value="<?= esc_url($checkin_url); ?>">
+<?php
+    }
+
     /**
      * カスタムフィールド保存
      * @param mixed $post_ID
@@ -292,7 +317,10 @@ class settingEvent
         $fields = self::$fields;
         foreach ($fields as $key => $label) {
             if (isset($_POST[$key])) {
-                if ($key === 'event_image') {
+                if($key === 'event_checkin') {
+                    // event_checkinはデータ更新なし
+                    continue;
+                }elseif ($key === 'event_image') {
                     update_post_meta($post_ID, $key, intval($_POST[$key])); // 画像IDは整数として保存
                 } else {
                     if ($key === 'event_time') {
@@ -306,4 +334,73 @@ class settingEvent
             }
         }
     }
+
+
+    // タグフィールド
+    static function add_event_tag_columns($columns) {
+        $columns['custom_field_key'] = 'カスタムフィールド';
+        return $columns;
+    }
+
+    // タグ編集画面にカスタムフィールドを追加
+    static function add_event_tag_custom_fields($term) {
+        $fields = self::$tag_fields;
+        foreach($fields as $key => $name)
+        {
+            $value = get_term_meta($term->term_id, $key, true);
+            ?>
+            <tr class="form-field">
+                <th scope="row" valign="top">
+                    <label for="<?=$key;?>"><?=$name;?></label>
+                </th>
+                <td>
+                    <input type="text" name="<?=$key;?>" id="<?=$key;?>" value="<?php echo esc_attr($value); ?>">
+                </td>
+            </tr>
+            <?php
+        }
+    }
+
+    static function add_event_tag_custom_fields_create() {
+        $fields = self::$tag_fields;
+        foreach($fields as $key => $name)
+        {
+            ?>
+            <div class="form-field">
+                <label for="<?=$key;?>"><?=$name;?></label>
+                <input type="text" name="<?=$key;?>" id="<?=$key;?>">
+            </div>
+            <?php
+         }
+    }
+
+// カスタムフィールドの保存
+    static function save_event_tag_custom_fields($term_id) {
+        $fields = self::$tag_fields;
+        foreach($fields as $key => $name)
+        {
+            if (isset($_POST[$key])) {
+                update_term_meta($term_id, $key, sanitize_text_field($_POST[$key]));
+            }
+        }
+        
+    }
+
+    // static function create_event_tag_custom_fields()
+    // {
+    //     $fields = self::$tag_fields;
+    //     foreach($fields as $key => $name) {
+    //         register_rest_field('event_tag', $key, [
+    //             'get_callback'    => function ($term,$key) {
+    //                 return get_term_meta($term['id'], $key, true);
+    //             },
+    //             'update_callback' => function ($value, $term) {
+    //                 return update_term_meta($term->term_id, 'custom_field_key', sanitize_text_field($value));
+    //             },
+    //             'schema'          => null,
+    //         ]);
+    //     }
+    // }
+
+
 }

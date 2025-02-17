@@ -7,22 +7,20 @@
  */
 //require_once('../extensions/custom_fields.php');
 require_once (plugin_dir_path( plugin_dir_path( __FILE__)).'extensions/custom_fields.php');
-class settingEntryHistory {
+class settingEventCheckin {
 
-    const LABEL = '申し込み履歴';
-    const POST_TYPE = 'entry_history';
+    const LABEL = 'イベント参加履歴';
+    const POST_TYPE = 'event_checkin';
 
     static $fields = [
         'user_id'=>'ユーザーID',
         'event_id'=>'イベントID',
-        'event_types'=>'参加タイプ',
-        'comment'=>'メッセージ',
     ];
 
     /**
      * LINEユーザーのカスタム投稿タイプ作成
      */
-    static function set_entry_history_post_type()
+    static function set_event_checkin_post_type()
     {
         $label = self::LABEL;
         $post_type = self::POST_TYPE;
@@ -63,7 +61,7 @@ class settingEntryHistory {
      * カスタムフィールド追加
      * @return void 
      */
-    static function create_entry_history_custom_fields()
+    static function create_event_checkin_custom_fields()
     {
         $fields = self::$fields;
 
@@ -96,23 +94,7 @@ class settingEntryHistory {
     }
 
     /**
-     * エラー日時のカスタムフィールド
-     * @param mixed $post 
-     * @return void 
-     */
-    static function show_event_types($post)
-    {
-        $post_id = $post->ID;
-        $value = get_post_meta($post_id,'event_types',true);
-        ?>
-        <label for="event_types">イベントタイプ</label>
-        <input type="text" id="event_types" name="event_types" value="<?=$value;?>">
-        <?php
-    }
-
-
-    /**
-     * 店舗ID
+     * イベントID
      * @param mixed $post 
      * @return void 
      */
@@ -123,21 +105,6 @@ class settingEntryHistory {
         ?>
         <label for="event_id">イベント ID</label>
         <input type="text" id="event_id" name="event_id" value="<?=$value;?>">
-        <?php
-    }
-
-    /**
-     * エラー日時のカスタムフィールド
-     * @param mixed $post 
-     * @return void 
-     */
-    static function show_comment($post)
-    {
-        $post_id = $post->ID;
-        $value = get_post_meta($post_id,'comment',true);
-        ?>
-        <label for="comment">メッセージ</label>
-        <textarea name="comment" id="comment"><?=$value;?></textarea>
         <?php
     }
 
