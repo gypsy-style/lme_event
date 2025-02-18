@@ -524,6 +524,11 @@ class settings {
             }
             update_post_meta( $post_id, 'richmenu_id', sanitize_text_field( $richmenu_id ) );
         }
+        if(isset($_REQUEST['member_rank'])) {
+            $member_rank = $_REQUEST['member_rank'];
+            update_post_meta($post_id,'member_rank', sanitize_text_field( $member_rank ));
+
+        }
     }
 
     static function replyToAddInlineData( $post, $post_type ) {

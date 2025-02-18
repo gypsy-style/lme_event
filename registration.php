@@ -83,37 +83,13 @@ $show_banner = get_option('show_banner');
                 let values = formData.values();
                 // console.log(values);
                 let post = {};
-                let pushMessage = [];
+                const pushMessage = '【会員登録済】';
                 let same_radio;
                 let birthdayMessage;
-                pushMessage.push('【登録内容】');
-                $("#form :input").each(function() {
-
-                    let input = $(this); // This is the jquery object of the input, do what you will
-                    let input_name = input.attr('name');
-                    console.log(input_name);
-                    let type = input.attr('type');
-                    let val;
-                    if (input_name) {
-                        val = $('#' + input_name).val();
-                        post[input_name] = val;
-                        // pushメッセージ作成
-                        if (!(type == 'radio' && same_radio == input_name) && input_name != 'form_type' && input_name != 'term') {
-                            same_radio = input_name;
-                            let title = input.attr('data-title');
-
-                            if (title) {
-                                pushMessage.push(title + '：' + val);
-                            } else {
-                                pushMessage.push(val);
-                            }
-                        }
-                    }
-                });
+                
                 // アクセストークンをセット
                 post['access_token'] = accessToken;
                 // return false;
-                pushMessage = pushMessage.join('\n');
                 liff.sendMessages([{
                     type: 'text',
                     text: pushMessage

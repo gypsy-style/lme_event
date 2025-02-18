@@ -80,28 +80,28 @@ class endpoints
         $replacedDisplayName = replace_emoji($lineProfile['displayName'], '*');
 
 
-        // 本登録時はリッチメニューも更新
-        $richmenu2 = get_option('richmenu_2');
+        
+        
 
         // 存在チェック
-        $query = new WP_Query(array(
-            'post_type' => 'line_user', // 投稿タイプを指定 (必要に応じてカスタム投稿タイプに変更)
-            'meta_key' => 'line_id', // カスタムフィールドのキーを指定
-            'meta_value' => $line_id, // カスタムフィールドの値を指定
-            'posts_per_page' => 1, // 1件だけ取得（該当する投稿があれば）
-        ));
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                $post_id = get_the_ID();
-                if ($richmenu2) {
-                    update_post_meta($post_id, 'richmenu_id', $richmenu2);
-                    lineconnectRichmenu::updateRichMenu($line_id, $richmenu2);
-                }
-            }
+        // $query = new WP_Query(array(
+        //     'post_type' => 'line_user', // 投稿タイプを指定 (必要に応じてカスタム投稿タイプに変更)
+        //     'meta_key' => 'line_id', // カスタムフィールドのキーを指定
+        //     'meta_value' => $line_id, // カスタムフィールドの値を指定
+        //     'posts_per_page' => 1, // 1件だけ取得（該当する投稿があれば）
+        // ));
+        // if ($query->have_posts()) {
+        //     while ($query->have_posts()) {
+        //         $query->the_post();
+        //         $post_id = get_the_ID();
+        //         if ($richmenu2) {
+        //             update_post_meta($post_id, 'richmenu_id', $richmenu2);
+        //             lineconnectRichmenu::updateRichMenu($line_id, $richmenu2);
+        //         }
+        //     }
 
-            return true;
-        }
+        //     return true;
+        // }
         wp_reset_postdata();
 
         $my_post = array(
@@ -125,10 +125,16 @@ class endpoints
         }
         // line_idも更新
         update_post_meta($post_id, 'line_id', $line_id);
+        // 本登録時はリッチメニューも更新
+        $richmenu2 = get_option('richmenu_2');
+        lineconnectRichmenu::updateRichMenu($line_id, $richmenu2);
 
         if ($richmenu2) {
             update_post_meta($post_id, 'richmenu_id', $richmenu2);
         }
+
+        // ゲストとして登録
+        update_post_meta($post_id,'member_rank','ゲスト');
 
         // リッチメニュー更新
         // if ($type != 'edit') {
@@ -193,6 +199,7 @@ class endpoints
         }
         $line_user_query->the_post();
         $user_id = get_the_ID();
+        $member_rank = get_post_meta($user_id, 'member_rank', true);
         wp_reset_postdata();
 
         // entry_history から申し込まれたイベント ID を取得
@@ -256,6 +263,17 @@ class endpoints
             ],
         ];
 
+        // "ゲスト" の場合は "例会" のみ取得
+        if ($member_rank === 'ゲスト') {
+            $event_query_args['tax_query'] = [
+                [
+                    'taxonomy' => 'event_category',
+                    'field'    => 'slug',
+                    'terms'    => 'check02',
+                ],
+            ];
+        }
+
         if (!empty($applied_event_ids)) {
             $event_query_args['post__not_in'] = $applied_event_ids; // 申し込まれていないイベントを取得
         }
@@ -268,17 +286,17 @@ class endpoints
             $event_title = get_the_title();
 
             $event_date = get_post_meta($event_id, 'event_date', true);
-                $event_date_override = get_post_meta($event_id, 'event_date_override', true);
-                $formatted_date = '';
-                if ($event_date_override) {
-                    $formatted_date = $event_date_override;
-                } else {
-                    if (!empty($event_date)) {
-                        $date = new DateTime($event_date);
-                        // 整形した日付を生成
-                        $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
-                    }
+            $event_date_override = get_post_meta($event_id, 'event_date_override', true);
+            $formatted_date = '';
+            if ($event_date_override) {
+                $formatted_date = $event_date_override;
+            } else {
+                if (!empty($event_date)) {
+                    $date = new DateTime($event_date);
+                    // 整形した日付を生成
+                    $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
                 }
+            }
 
             $html .= '<ul class="lmf-card_list">';
             $html .= '<li><a href="https://liff.line.me/' . $liff_id_event_entry . '?event_id=' . $event_id . '&user_id=' . $user_id . '">';
@@ -314,46 +332,49 @@ class endpoints
             ];
             $event_query = new WP_Query($event_query_args);
             $html .= '<section class="section">';
-            while ($event_query->have_posts()) {
-                $event_query->the_post();
-                $event_id = get_the_ID();
-                $event_title = get_the_title();
-
-
-                $event_date = get_post_meta($event_id, 'event_date', true);
-                $event_date_override = get_post_meta($event_id, 'event_date_override', true);
-                $formatted_date = '';
-                if ($event_date_override) {
-                    $formatted_date = $event_date_override;
-                } else {
-                    if (!empty($event_date)) {
-                        $date = new DateTime($event_date);
-                        // 整形した日付を生成
-                        $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
-                    }
-                }
-
-                $html .= '<ul class="lmf-card_list">';
-                $html .= '<li><a href="https://liff.line.me/' . $liff_id_event_entry . '?event_id=' . $event_id . '&user_id=' . $user_id . '">';
-                $html .= '<p class="data_box">' . $formatted_date . '</p>';
-                $html .= '<h3 class="name">' . $event_title . '</h3>';
-                // タグ
-                $tags = get_the_terms($event_id, 'event_tag'); // デフォルトのタグタクソノミー
-                $formatted_tag_icon = '';
-                if ($tags && !is_wp_error($tags)) {
-                    foreach ($tags as $tag) {
-                        $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
-                        if (!$icon_class_name) {
-                            $icon_class_name = 'icon_or';
+            if($member_rank != 'ゲスト' || ($member_rank == 'ゲスト' && $category->slug == 'check02')) {
+                while ($event_query->have_posts()) {
+                    $event_query->the_post();
+                    $event_id = get_the_ID();
+                    $event_title = get_the_title();
+    
+    
+                    $event_date = get_post_meta($event_id, 'event_date', true);
+                    $event_date_override = get_post_meta($event_id, 'event_date_override', true);
+                    $formatted_date = '';
+                    if ($event_date_override) {
+                        $formatted_date = $event_date_override;
+                    } else {
+                        if (!empty($event_date)) {
+                            $date = new DateTime($event_date);
+                            // 整形した日付を生成
+                            $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
                         }
-                        // タグ名を <span> で囲む
-                        $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
                     }
+    
+                    $html .= '<ul class="lmf-card_list">';
+                    $html .= '<li><a href="https://liff.line.me/' . $liff_id_event_entry . '?event_id=' . $event_id . '&user_id=' . $user_id . '">';
+                    $html .= '<p class="data_box">' . $formatted_date . '</p>';
+                    $html .= '<h3 class="name">' . $event_title . '</h3>';
+                    // タグ
+                    $tags = get_the_terms($event_id, 'event_tag'); // デフォルトのタグタクソノミー
+                    $formatted_tag_icon = '';
+                    if ($tags && !is_wp_error($tags)) {
+                        foreach ($tags as $tag) {
+                            $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
+                            if (!$icon_class_name) {
+                                $icon_class_name = 'icon_or';
+                            }
+                            // タグ名を <span> で囲む
+                            $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
+                        }
+                    }
+                    $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
+    
+                    $html .= '</ul>';
                 }
-                $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
-
-                $html .= '</ul>';
             }
+            
             $html .= '</section>';
             wp_reset_postdata();
         }
@@ -406,6 +427,7 @@ class endpoints
         }
         $line_user_query->the_post();
         $user_id = get_the_ID();
+        $member_rank = get_post_meta($user_id, 'member_rank', true);
         wp_reset_postdata();
 
 
@@ -472,6 +494,16 @@ class endpoints
                 ],
             ],
         ];
+        // "ゲスト" の場合は "例会" のみ取得
+        if ($member_rank === 'ゲスト') {
+            $event_query_args['tax_query'] = [
+                [
+                    'taxonomy' => 'event_category',
+                    'field'    => 'slug',
+                    'terms'    => 'check02',
+                ],
+            ];
+        }
 
         $event_query = new WP_Query($event_query_args);
         while ($event_query->have_posts()) {
@@ -544,52 +576,55 @@ class endpoints
             $html .= '<section class="section">';
             $html .= '<ul class="lmf-card_list">';
 
-            while ($event_query->have_posts()) {
-                $event_query->the_post();
-                $event_id = get_the_ID();
-                $event_title = get_the_title();
-                $event_types = get_post_meta($event_id, 'event_types', true); // カスタムフィールド
-                $term = get_queried_object();
-                $icon_class_name = get_term_meta($term->term_id, 'icon_color', true);
-
-                // if (!empty($icon_color)) {
-                //     $icon_class_name .= '' . $icon_color;
-                // }
-                $entried_icon = '';
-
-                if (in_array($event_id, $applied_event_ids)) {
-                    $entried_icon = '<div class="lmf-status_box"><span class="icon' . $icon_class_name . ' already">申込済み済</span></div>';
-                }
-                $event_date = get_post_meta($event_id, 'event_date', true); // カスタムフィールド
-                $formatted_date = '';
-                if (!empty($event_date)) {
-                    $date = new DateTime($event_date);
-                    // 整形した日付を生成
-                    $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
-                }
-
-
-                $html .= '<li>' . $entried_icon . '<a href="https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '&user_id=' . $user_id . '">';
-                $html .= '<p class="data_box">' . $formatted_date . '</p>';
-                $html .= '<h3 class="name">' . $event_title . '</h3>';
-                // タグ
-                $tags = get_the_terms($event_id, 'event_tag'); // デフォルトのタグタクソノミー
-                // $term = get_queried_object();
-                $formatted_tag_icon = '';
-                if ($tags && !is_wp_error($tags)) {
-                    foreach ($tags as $tag) {
-                        $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
-                        if (!$icon_class_name) {
-                            $icon_class_name = 'icon_or';
-                        }
-                        // タグ名を <span> で囲む
-                        $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
+            if($member_rank != 'ゲスト' || ($member_rank == 'ゲスト' && $category->slug == 'check02')) {
+                while ($event_query->have_posts()) {
+                    $event_query->the_post();
+                    $event_id = get_the_ID();
+                    $event_title = get_the_title();
+                    $event_types = get_post_meta($event_id, 'event_types', true); // カスタムフィールド
+                    $term = get_queried_object();
+                    $icon_class_name = get_term_meta($term->term_id, 'icon_color', true);
+    
+                    // if (!empty($icon_color)) {
+                    //     $icon_class_name .= '' . $icon_color;
+                    // }
+                    $entried_icon = '';
+    
+                    if (in_array($event_id, $applied_event_ids)) {
+                        $entried_icon = '<div class="lmf-status_box"><span class="icon' . $icon_class_name . ' already">申込済み済</span></div>';
                     }
+                    $event_date = get_post_meta($event_id, 'event_date', true); // カスタムフィールド
+                    $formatted_date = '';
+                    if (!empty($event_date)) {
+                        $date = new DateTime($event_date);
+                        // 整形した日付を生成
+                        $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
+                    }
+    
+    
+                    $html .= '<li>' . $entried_icon . '<a href="https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '&user_id=' . $user_id . '">';
+                    $html .= '<p class="data_box">' . $formatted_date . '</p>';
+                    $html .= '<h3 class="name">' . $event_title . '</h3>';
+                    // タグ
+                    $tags = get_the_terms($event_id, 'event_tag'); // デフォルトのタグタクソノミー
+                    // $term = get_queried_object();
+                    $formatted_tag_icon = '';
+                    if ($tags && !is_wp_error($tags)) {
+                        foreach ($tags as $tag) {
+                            $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
+                            if (!$icon_class_name) {
+                                $icon_class_name = 'icon_or';
+                            }
+                            // タグ名を <span> で囲む
+                            $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
+                        }
+                    }
+                    $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
+                    $html .= '</a>';
+                    $html .= '</li>';
                 }
-                $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
-                $html .= '</a>';
-                $html .= '</li>';
             }
+            
             $html .= '</ul>';
             $html .= '</section>';
             wp_reset_postdata();

@@ -16,6 +16,7 @@ class settingLineUser
 
     static $fields = [
         'line_id' => 'LINEID',
+        'member_rank' => '会員ステータス',
         'richmenu_id' => 'リッチメニュー',
         'campany_name' => '会社名',
         'name' => '名前',
@@ -97,6 +98,38 @@ class settingLineUser
 ?>
 
         <input type="text" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
+    <?php
+    }
+
+    static function show_member_rank($post)
+    {
+        $item_name = 'member_rank';
+        $options = [
+            'ゲスト',
+            'トライアル',
+            '会員',
+            '理事',
+        ];
+        $post_id = $post->ID;
+        $value = get_post_meta($post_id, $item_name, true);
+
+
+        //        echo $meta;
+    ?>
+
+        <select name="<?= $item_name; ?>" id="<?= $item_name; ?>">
+            <?php
+            foreach ($options as $option_value):
+                $selected = '';
+                if ($option_value == $value) {
+                    $selected = ' selected';
+                }
+            ?>
+                <option value="<?= $option_value; ?>" <?= $selected; ?>><?= $option_value; ?></option>
+            <?php
+            endforeach;
+            ?>
+        </select>
     <?php
     }
 
