@@ -45,6 +45,7 @@ class lineMembers {
         add_action('init',['settingLineUser','set_line_user_post_type']);
         add_action('admin_menu',['settingLineUser','create_line_user_custom_fields']);
         add_action('save_post', ['settingLineUser','save_custom_fields']);
+        add_action('init', ['settingLineUser', 'register_taxonomies']);
         // エラーログ関連
         add_action('init',['settingErrorLog','set_error_log_post_type']);
         add_action('admin_menu',['settingErrorLog','create_error_log_custom_fields']);

@@ -86,6 +86,17 @@ $show_banner = get_option('show_banner');
                 const pushMessage = '【会員登録済】';
                 let same_radio;
                 let birthdayMessage;
+                $("#form :input").each(function() {
+                    let input = $(this); // This is the jquery object of the input, do what you will
+                    let input_name = input.attr('name');
+                    console.log(input_name);
+                    let val;
+                    if (input_name) {
+                        val = $('#' + input_name).val();
+                        post[input_name] = val;
+
+                    }
+                });
                 
                 // アクセストークンをセット
                 post['access_token'] = accessToken;

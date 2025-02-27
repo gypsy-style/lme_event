@@ -23,7 +23,8 @@ class settingLineUser
         'tel' => '電話番号',
         'email' => 'メールアドレス',
         'sex' => '性別',
-        
+        'member_type' => '理事カテゴリー',
+
     ];
 
     /**
@@ -58,12 +59,43 @@ class settingLineUser
                     'custom-fields', //カスタムフィールド
                     'revisions'  //リビジョンを保存
                 ),
+                'taxonomies' => array($post_type.'_category'), // カテゴリーを追加
                 'menu_position' => 5, //「投稿」の下に追加
             )
         );
 
         // リビジョンを有効にする
         //        add_post_type_support('line_user','revisions');
+    }
+
+    static function register_taxonomies()
+    {
+        // カテゴリーの登録
+        $post_type = self::POST_TYPE;
+        register_taxonomy(
+            $post_type.'_category',
+            $post_type,
+            array(
+                'labels' => array(
+                    'name' => 'ユーザーカテゴリー',
+                    'singular_name' => 'ユーザーカテゴリー',
+                    'search_items' => 'カテゴリーを検索',
+                    'all_items' => 'すべてのカテゴリー',
+                    'parent_item' => '親カテゴリー',
+                    'parent_item_colon' => '親カテゴリー:',
+                    'edit_item' => 'カテゴリーを編集',
+                    'update_item' => 'カテゴリーを更新',
+                    'add_new_item' => '新しいカテゴリーを追加',
+                    'new_item_name' => '新しいカテゴリー名',
+                    'menu_name' => 'カテゴリー',
+                ),
+                'hierarchical' => true, // カテゴリーは階層構造を持つ
+                'show_ui' => true,
+                'show_admin_column' => true,
+                'show_in_rest' => true,
+            )
+        );
+
     }
 
     /**
@@ -138,7 +170,7 @@ class settingLineUser
         $item_name = 'campany_name';
         $post_id = $post->ID;
         $value = get_post_meta($post_id, $item_name, true);
-?>
+    ?>
 
         <input type="text" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
     <?php
@@ -148,7 +180,7 @@ class settingLineUser
         $item_name = 'name';
         $post_id = $post->ID;
         $value = get_post_meta($post_id, $item_name, true);
-?>
+    ?>
 
         <input type="text" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
     <?php
@@ -159,7 +191,7 @@ class settingLineUser
         $item_name = 'tel';
         $post_id = $post->ID;
         $value = get_post_meta($post_id, $item_name, true);
-?>
+    ?>
 
         <input type="tel" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
     <?php
@@ -170,7 +202,7 @@ class settingLineUser
         $item_name = 'email';
         $post_id = $post->ID;
         $value = get_post_meta($post_id, $item_name, true);
-?>
+    ?>
 
         <input type="text" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
     <?php
@@ -207,7 +239,7 @@ class settingLineUser
     <?php
     }
 
-    
+
 
     static function show_richmenu_id($post)
     {
@@ -263,7 +295,7 @@ class settingLineUser
         $value = get_post_meta($post_id, $item_name, true);
     ?>
         <input type="text" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
-<?php
+    <?php
     }
 
     static function show_point_limit_date($post)
@@ -273,6 +305,35 @@ class settingLineUser
         $value = get_post_meta($post_id, $item_name, true);
     ?>
         <input type="text" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
+    <?php
+    }
+
+    static function show_member_type($post)
+    {
+        $item_name = 'member_type';
+        $options = [
+            '会長',
+            '事務局長',
+            '顧問',
+            '幹事',
+            '本部役員',
+            '副会長',
+            '委員長',
+            '副委員長',
+        ];
+        $post_id = $post->ID;
+        $values = get_post_meta($post_id, $item_name, true);
+        $values = is_array($values) ? $values : [];
+
+    ?>
+        <fieldset>
+            <?php foreach ($options as $key => $label) : ?>
+                <label>
+                    <input type="checkbox" name="<?= $item_name; ?>[]" value="<?= $key; ?>" <?= in_array($key, $values) ? 'checked' : ''; ?>>
+                    <?= $label; ?>
+                </label><br>
+            <?php endforeach; ?>
+        </fieldset>
 <?php
     }
 
@@ -291,7 +352,14 @@ class settingLineUser
         $get_items = self::$fields;
         foreach ($get_items as $item_name => $item_args) {
             if (isset($_POST[$item_name])) {
-                update_post_meta($post_ID, $item_name, $_POST[$item_name]);
+                if (is_array($_POST[$item_name])) {
+                    update_post_meta($post_ID, $item_name, $_POST[$item_name]);
+                } else {
+                    update_post_meta($post_ID, $item_name, sanitize_text_field($_POST[$item_name]));
+                }
+            }else {
+                // チェックボックスが空の場合、値を削除
+                delete_post_meta($post_ID, $item_name);
             }
         }
 
