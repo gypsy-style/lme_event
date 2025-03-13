@@ -40,8 +40,8 @@ $formatted_tag_icon = '';
 $formatted_event_checkbox = '';
 $event_types_array = [];
 $event_id = isset($_GET['event_id']) ? $_GET['event_id'] : 0;
-$user_id = isset($_GET['user_id']) ? $_GET['user_id'] : 0;
 $event_schedule_link = '';
+$event_stop_entry = '';
 
 // 投稿データの取得
 $event_post = get_post($event_id);
@@ -86,11 +86,12 @@ if ($event_post && $event_post->post_type === 'event') {
 	$contact_phone = !empty(get_post_meta($event_id, 'contact_phone', true)) ? get_post_meta($event_id, 'contact_phone', true) : '';
 	$entry_fee = get_post_meta($event_id, 'entry_fee', true);
 	$event_types = get_post_meta($event_id, 'event_types', true);
+	$event_stop_entry = get_post_meta($event_id, 'event_stop_entry', true);
 	$weekdays = get_weekdays();
 
 	// scheduleへのリンク
 	$liff_id_event_schedule = get_option('liff_id_event_schedule');
-	$event_schedule_link = 'https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '&user_id=' . $user_id;
+	$event_schedule_link = 'https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id;
 
 	if (!empty($event_date)) {
 		$date = new DateTime($event_date);
@@ -238,6 +239,8 @@ if ($event_post && $event_post->post_type === 'event') {
 
 					<p class="lmf-link_box right"><a href="<?= $event_schedule_link; ?>">イベント詳細はこちら</a></p>
 					<hr>
+					<?php
+					if(!$event_stop_entry):?>
 					<form action="process_form.php" method="POST">
 						<input type="hidden" name="event_id" value="<?= esc_attr($event_id); ?>">
 						<input type="hidden" name="access_token" id="accessToken">
@@ -252,6 +255,12 @@ if ($event_post && $event_post->post_type === 'event') {
 						</dl>
 						<p class="lmf-btn_box"><button type="submit">申し込む</button></p>
 					</form>
+					<?php
+					else:
+						?>
+						<p>受付は終了しました</p>
+						<?php
+					endif;?>
 				</div>
 				<ul class="lmf-pnavi_list clearfix">
 					<li class="back"><a href="event_entry_list.php">一覧へ戻る</a></li>

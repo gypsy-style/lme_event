@@ -678,6 +678,10 @@ class settings
         register_setting('line_user', 'liff_id_event_entry');
         register_setting('line_user', 'liff_id_event_schedule');
         register_setting('line_user', 'liff_id_event_checkin');
+        register_setting('line_user', 'liff_id_mypage');
+        register_setting('line_user', 'liff_id_event_schedule_history');
+        register_setting('line_user', 'liff_id_entried_event');
+        register_setting('line_user', 'liff_id_profile');
 
 
 
@@ -737,6 +741,14 @@ class settings
                                 <p><input type="text" id="liff_id" name="liff_id_event_schedule" value="<?php echo get_option('liff_id_event_schedule'); ?>"></p>
                                 <h4>イベントチェックイン用 <input id="copy_richmenu_checkin" type="text" class="regular-text" value="<?= plugins_url() . '/line-members/event_checkin.php'; ?>" readonly> <span onclick="copyToClipboard('copy_richmenu_checkin')">コピー</span></h4>
                                 <p><input type="text" id="liff_id" name="liff_id_event_checkin" value="<?php echo get_option('liff_id_event_checkin'); ?>"></p>
+                                <h4>MyPage用 <input id="copy_richmenu_mypage" type="text" class="regular-text" value="<?= plugins_url() . '/line-members/mypage.php'; ?>" readonly> <span onclick="copyToClipboard('copy_richmenu_mypage')">コピー</span></h4>
+                                <p><input type="text" id="liff_id" name="liff_id_mypage" value="<?php echo get_option('liff_id_mypage'); ?>"></p>
+                                <h4>profile用 <input id="copy_richmenu_mypage" type="text" class="regular-text" value="<?= plugins_url() . '/line-members/profile.php'; ?>" readonly> <span onclick="copyToClipboard('copy_richmenu_mypage')">コピー</span></h4>
+                                <p><input type="text" id="liff_id" name="liff_id_profile" value="<?php echo get_option('liff_id_profile'); ?>"></p>
+                                <h4>申し込み済みイベント用 <input id="copy_event_schedule_history" type="text" class="regular-text" value="<?= plugins_url() . '/line-members/event_schedule_history.php'; ?>" readonly> <span onclick="copyToClipboard('copy_richmenu_mypage')">コピー</span></h4>
+                                <p><input type="text" id="liff_id" name="liff_id_event_schedule_history" value="<?php echo get_option('liff_id_event_schedule_history'); ?>"></p>
+                                <h4>申し込み済みイベント詳細 <input id="copy_event_schedule_history" type="text" class="regular-text" value="<?= plugins_url() . '/line-members/entried_event.php'; ?>" readonly> <span onclick="copyToClipboard('copy_richmenu_mypage')">コピー</span></h4>
+                                <p><input type="text" id="liff_id" name="liff_id_entried_event" value="<?php echo get_option('liff_id_entried_event'); ?>"></p>
                             </div>
                         </div>
                     </div>

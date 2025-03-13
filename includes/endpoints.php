@@ -22,9 +22,17 @@ class endpoints
     static $endpoint_functions = [
         'register_line_user',
         'entry_request',
+        'entried_event',
+        'cancel_event',
         'event_entry_list',
+        'event_entry_list_history',
         'event_list',
         'is_event_checkin',
+        'get_user_id',
+        'is_user_entried',
+        'get_mypage',
+        'get_profile',
+        'update_line_user',
 
         'line_api_error',
         'point_history',
@@ -80,8 +88,8 @@ class endpoints
         $replacedDisplayName = replace_emoji($lineProfile['displayName'], '*');
 
 
-        
-        
+
+
 
         // 存在チェック
         // $query = new WP_Query(array(
@@ -134,7 +142,7 @@ class endpoints
         }
 
         // ゲストとして登録
-        update_post_meta($post_id,'member_rank','ゲスト');
+        update_post_meta($post_id, 'member_rank', 'ゲスト');
 
         // リッチメニュー更新
         // if ($type != 'edit') {
@@ -155,6 +163,224 @@ class endpoints
         // }
         // }
         return true;
+    }
+
+
+    static function entried_event($request)
+    {
+        $event_id = $request->get_param('event_id');
+        $accessToken = $request->get_param('access_token');
+
+        // アクセストークンが存在しない場合は終了
+        if (!$accessToken) {
+            echo json_encode(['status' => 'error', 'message' => 'Access token is missing']);
+            exit;
+        }
+
+        // 1. アクセストークンからLINEユーザーID（line_id）を取得
+        $lineProfile = self::get_line_profile($accessToken);
+        if (!$lineProfile || !isset($lineProfile['userId'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to retrieve LINE user ID']);
+            exit;
+        }
+        $line_id = $lineProfile['userId'];
+
+        // 2. カスタム投稿タイプ line_user で line_id をキーに検索
+        $line_user_query = new WP_Query([
+            'post_type' => 'line_user',
+            'meta_query' => [
+                [
+                    'key' => 'line_id',
+                    'value' => $line_id,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        // イベント情報取得
+        $event_post = get_post($event_id);
+        if (!$event_post) {
+            echo json_encode(['status' => 'error', 'message' => 'event data not found']);
+            exit;
+        }
+
+        if ($line_user_query->have_posts()) {
+            // 3. line_user が存在すれば postID を取得
+            $line_user_post_id = $line_user_query->posts[0]->ID;
+            // 
+            // タイトル
+            $event_title = get_the_title($event_id);
+
+            // アイキャッチ画像
+            $thumbnail_url = get_the_post_thumbnail_url($event_id, 'full');
+
+            // カテゴリー
+            $categories = get_the_terms($event_id, 'event_category'); // カスタムタクソノミー名に置き換える
+            $category_names = [];
+            if (!empty($categories) && !is_wp_error($categories)) {
+                foreach ($categories as $category) {
+                    $category_names[] = $category->name;
+                }
+            }
+
+            // タグ
+            $tags = get_the_terms($event_id, 'post_tag'); // デフォルトのタグタクソノミー
+            $tag_names = [];
+            if (!empty($tags) && !is_wp_error($tags)) {
+                foreach ($tags as $tag) {
+                    $tag_names[] = $tag->name;
+                }
+            }
+            // カスタムフィールド
+            $event_date = get_post_meta($event_id, 'event_date', true);
+            $today = new DateTime(); // 今日の日付
+            $event_date_object = new DateTime($event_date);
+            // 5日前の計算
+            $five_days_before = clone $event_date_object;
+            $five_days_before->modify('-5 days');
+            $show_cancel_button = ($today <= $five_days_before);
+
+            $event_date_override = get_post_meta($event_id, 'event_date_override', true);
+            $weekdays = get_weekdays();
+
+            $liff_id_event_schedule = get_option('liff_id_event_schedule');
+            $event_schedule_link = 'https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id;
+
+            if (!empty($event_date)) {
+                $date = new DateTime($event_date);
+                // 整形した日付を生成
+                $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
+                if (!empty($event_date_override)) {
+                    $formatted_date = $event_date_override;
+                }
+            }
+
+            $tags = get_the_terms($event_id, 'event_tag');
+            // タグが存在する場合に処理を実行
+            $formatted_tag_icon = '';
+            if ($tags && !is_wp_error($tags)) {
+                // echo '<div class="event-tags">';
+                foreach ($tags as $tag) {
+                    $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
+                    if (!$icon_class_name) {
+                        $icon_class_name = 'icon_or';
+                    }
+                    // タグ名を <span> で囲む
+                    $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
+                }
+            }
+
+            // 申し込み情報詳細を取得
+            // wp_reset_postdata();
+            $args = array(
+                'post_type' => 'entry_history',
+                'meta_query' => [
+                    [
+                        'key' => 'user_id',
+                        'value' => $line_user_post_id,
+                        'compare' => '='
+                    ],
+                    [
+                        'key' => 'event_id',
+                        'value' => $event_id,
+                        'compare' => '='
+                    ]
+                ]
+            );
+
+            $entry_history = get_posts($args);
+
+            $response = print_r($entry_history, true);
+
+            if (isset($entry_history) && !empty($entry_history)) {
+                $entry_history_id = $entry_history[0]->ID;
+                $entry_history_comment = get_post_meta($entry_history_id, 'comment', true);
+                $entry_history_event_types = get_post_meta($entry_history_id, 'event_types', true);
+                $entry_history_event_types_array = explode(',', $entry_history_event_types);
+                $event_types = '';
+                if (is_array($entry_history_event_types_array)) {
+                    foreach ($entry_history_event_types_array as $event_type) {
+                        $event_types .= '<li>' . $event_type . '</li>' . PHP_EOL;
+                    }
+                }
+            }
+
+            $html = '';
+            $html .= '<div class="lmf-status_box"><span class="icon already">申込済み済</span></div>' . PHP_EOL;
+            $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>' . PHP_EOL;
+            $html .= '<p class="data_box">' . $formatted_date . '</p>' . PHP_EOL;
+            $html .= '<h2>' . $event_title . '</h2>' . PHP_EOL;
+            $html .= '<p class="lmf-link_box right"><a href="' . $event_schedule_link . '">イベント詳細はこちら</a></p>' . PHP_EOL;
+            $html .= '<hr>' . PHP_EOL;
+            $html .= '<form action="#">' . PHP_EOL;
+            $html .= '    <dl class="lmf-form_box cancel">' . PHP_EOL;
+            $html .= '        <dt>申し込み状況</dt>' . PHP_EOL;
+            $html .= '        <dd class="left">' . PHP_EOL;
+            $html .= '            <ul class="lmf-check_list">' . PHP_EOL . $event_types . '</ul>';
+            $html .= '        </dd>' . PHP_EOL;
+            $html .= '        <dt>メッセージ</dt>' . PHP_EOL;
+            $html .= '        <dd class="text">' . $entry_history_comment . '</dd>' . PHP_EOL;
+            $html .= '    </dl>' . PHP_EOL;
+            $html .= '    <p class="center bold color__2nd">開催日5日前まで変更・キャンセルが可能です</p>' . PHP_EOL;
+            if ($show_cancel_button) {
+                $html .= '    <p class="lmf-btn_box" id="btn-cancel"><button data-event_id="' . $event_id . '" data-user_id="' . $line_user_post_id . '" type="button">申し込みをキャンセルする</button></p>' . PHP_EOL;
+            }
+            $html .= '</form>' . PHP_EOL;
+            $html .= '</div>' . PHP_EOL;
+            header("Content-type: application/json; charset=UTF-8");
+            echo json_encode(['html' => $html, 'response' => $response]);
+        } else {
+            // 会員登録ページへリダイレクト https://liff.line.me/2006629843-MgmjwJxk
+
+        }
+    }
+
+    static function cancel_event($request)
+    {
+        $user_id = $request->get_param('user_id');
+        $event_id = $request->get_param('event_id');
+
+        if (!$user_id || !$event_id) {
+            echo json_encode(['status' => 'error', 'message' => 'Missing user_id or event_id']);
+            exit;
+        }
+
+        // 該当する `entry_history` の投稿を取得
+        $args = [
+            'post_type'      => 'entry_history',
+            'posts_per_page' => -1,
+            'meta_query'     => [
+                'relation' => 'AND',
+                [
+                    'key'     => 'user_id',
+                    'value'   => $user_id,
+                    'compare' => '='
+                ],
+                [
+                    'key'     => 'event_id',
+                    'value'   => $event_id,
+                    'compare' => '='
+                ],
+            ],
+        ];
+
+        $query = new WP_Query($args);
+
+        if ($query->have_posts()) {
+            while ($query->have_posts()) {
+                $query->the_post();
+                $post_id = get_the_ID();
+
+                // 投稿を削除
+                wp_delete_post($post_id, true);
+            }
+            wp_reset_postdata();
+
+            echo json_encode(['status' => 'success', 'message' => 'Entry canceled successfully']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No matching entry found']);
+        }
+        exit;
     }
 
     /**
@@ -244,6 +470,263 @@ class endpoints
 
         $html .= '<div class="lmf-tab_area">';
         $html .= '<section class="section">';
+        $html .= '<ul class="lmf-card_list">';
+        // カテゴリーすべてを取得
+        $event_query_args = [
+            'post_type'      => 'event',
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+            'meta_key'       => 'event_date', // ソート基準となるカスタムフィールド
+            'orderby'        => 'meta_value', // meta_valueでソート
+            'order'          => 'ASC',        // 昇順
+            'meta_type'      => 'DATE',       // meta_valueのデータ型を指定 (日付の場合)
+            'meta_query'     => [
+                [
+                    'key'     => 'event_date', // カスタムフィールドのキー
+                    'value'   => date('Y-m-d'), // 今日の日付
+                    'compare' => '>=',          // 今日以降の日付
+                    'type'    => 'DATE',        // データ型を指定
+                ],
+                [
+                    'key'     => 'event_types',
+                    'value'   => '', // 空の値を指定
+                    'compare' => '!=', // 空でないものを取得
+                ],
+            ],
+        ];
+
+        // "ゲスト" の場合は "例会" のみ取得
+        if ($member_rank === 'ゲスト') {
+            $event_query_args['tax_query'] = [
+                [
+                    'taxonomy' => 'event_category',
+                    'field'    => 'slug',
+                    'terms'    => 'check02',
+                ],
+            ];
+        }
+
+        if (!empty($applied_event_ids)) {
+            $event_query_args['post__not_in'] = $applied_event_ids; // 申し込まれていないイベントを取得
+        }
+
+        $event_query = new WP_Query($event_query_args);
+        $previous_month = null;
+        $current_month = null;
+
+        while ($event_query->have_posts()) {
+            $event_query->the_post();
+            $event_id = get_the_ID();
+            $event_title = get_the_title();
+
+            $event_date = get_post_meta($event_id, 'event_date', true);
+            $event_date_override = get_post_meta($event_id, 'event_date_override', true);
+            $formatted_date = '';
+            if ($event_date_override) {
+                $formatted_date = $event_date_override;
+            } else {
+                if (!empty($event_date)) {
+                    $date = new DateTime($event_date);
+                    // 整形した日付を生成
+                    $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
+                    $current_month = $date->format('Y年n月');
+                }
+            }
+
+            // 月が変わったらラベルを挿入
+            if ($previous_month !== $current_month) {
+                $html .= '<h2 class="lmf-title02">' . $current_month . '</h2>';
+                $previous_month = $current_month;
+            }
+
+
+            $html .= '<li><a href="https://liff.line.me/' . $liff_id_event_entry . '?event_id=' . $event_id . '">';
+            $html .= '<p class="data_box">' . $formatted_date . '</p>';
+            $html .= '<h3 class="name">' . $event_title . '</h3>';
+            // タグ
+            $tags = get_the_terms($event_id, 'event_tag'); // デフォルトのタグタクソノミー
+            $formatted_tag_icon = '';
+            if ($tags && !is_wp_error($tags)) {
+                foreach ($tags as $tag) {
+                    $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
+                    if (!$icon_class_name) {
+                        $icon_class_name = 'icon_or';
+                    }
+                    // タグ名を <span> で囲む
+                    $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
+                }
+            }
+            $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
+            $html .= '</a>';
+            $html .= '</li>';
+        }
+        $html .= '</ul>';
+        $html .= '</section>';
+        wp_reset_postdata();
+
+        // カテゴリーごと
+        foreach ($categories as $category) {
+            $event_query_args['tax_query'] = [
+                [
+                    'taxonomy' => 'event_category',
+                    'field'    => 'slug',
+                    'terms'    => $category->slug,
+                ],
+            ];
+            $event_query = new WP_Query($event_query_args);
+            $previous_month = null;
+            $current_month = null;
+            $html .= '<section class="section">';
+            $html .= '<ul class="lmf-card_list">';
+            if ($member_rank != 'ゲスト' || ($member_rank == 'ゲスト' && $category->slug == 'check02')) {
+                while ($event_query->have_posts()) {
+                    $event_query->the_post();
+                    $event_id = get_the_ID();
+                    $event_title = get_the_title();
+
+
+                    $event_date = get_post_meta($event_id, 'event_date', true);
+                    $event_date_override = get_post_meta($event_id, 'event_date_override', true);
+                    $formatted_date = '';
+                    if ($event_date_override) {
+                        $formatted_date = $event_date_override;
+                    } else {
+                        if (!empty($event_date)) {
+                            $date = new DateTime($event_date);
+                            // 整形した日付を生成
+                            $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
+                            $current_month = $date->format('Y年n月');
+                        }
+                    }
+                    // 月が変わったらラベルを挿入
+                    if ($previous_month !== $current_month) {
+                        $html .= '<h2 class="lmf-title02">' . $current_month . '</h2>';
+                        $previous_month = $current_month;
+                    }
+
+
+                    $html .= '<li><a href="https://liff.line.me/' . $liff_id_event_entry . '?event_id=' . $event_id . '">';
+                    $html .= '<p class="data_box">' . $formatted_date . '</p>';
+                    $html .= '<h3 class="name">' . $event_title . '</h3>';
+                    // タグ
+                    $tags = get_the_terms($event_id, 'event_tag'); // デフォルトのタグタクソノミー
+                    $formatted_tag_icon = '';
+                    if ($tags && !is_wp_error($tags)) {
+                        foreach ($tags as $tag) {
+                            $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
+                            if (!$icon_class_name) {
+                                $icon_class_name = 'icon_or';
+                            }
+                            // タグ名を <span> で囲む
+                            $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
+                        }
+                    }
+                    $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
+                    $html .= '</a>';
+                    $html .= '</li>';
+                }
+            }
+            $html .= '</ul>';
+            $html .= '</section>';
+            wp_reset_postdata();
+        }
+
+
+        $html .= '</div>';
+        $return['html'] = $html;
+
+        header("Content-type: application/json; charset=UTF-8");
+        echo json_encode($return);
+    }
+
+    /**
+     * 申し込み済み一覧
+     * 日時が過ぎたら表示させない
+     * @return void 
+     */
+    static function event_entry_list_history()
+    {
+        $weekdays = get_weekdays();
+        $html = '';
+        $liff_id_entried_event = get_option('liff_id_entried_event');
+        $accessToken = $_REQUEST['access_token'];
+        // アクセストークンが存在しない場合は終了
+        if (!$accessToken) {
+            echo json_encode(['status' => 'error', 'message' => 'Access token is missing']);
+            exit;
+        }
+        $lineProfile = self::get_line_profile($accessToken);
+        if (!$lineProfile || !isset($lineProfile['userId'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to retrieve LINE user ID']);
+            exit;
+        }
+
+        $line_id = $lineProfile['userId'];
+
+        // line_user から user_id(postId) を取得
+        $line_user_query = new WP_Query([
+            'post_type' => 'line_user',
+            'meta_query' => [
+                [
+                    'key' => 'line_id',
+                    'value' => $line_id,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        if (!$line_user_query->have_posts()) {
+            echo json_encode(['status' => 'error', 'message' => 'User not found']);
+            exit;
+        }
+        $line_user_query->the_post();
+        $user_id = get_the_ID();
+        $member_rank = get_post_meta($user_id, 'member_rank', true);
+        wp_reset_postdata();
+
+        // entry_history から申し込まれたイベント ID を取得
+        $entry_history_query = new WP_Query([
+            'post_type' => 'entry_history',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                [
+                    'key' => 'user_id',
+                    'value' => $user_id,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        $applied_event_ids = [];
+        while ($entry_history_query->have_posts()) {
+            $entry_history_query->the_post();
+            $applied_event_ids[] = get_post_meta(get_the_ID(), 'event_id', true);
+        }
+        wp_reset_postdata();
+
+        // カテゴリーを取得
+        $categories = get_categories(array(
+            'taxonomy' => 'event_category', // カテゴリータクソノミー
+            'hide_empty' => false,    // 投稿がないカテゴリーも表示
+        ));
+
+        // html生成
+        $html .= '<input type="radio" name="rank_tab" id="tab_check01" class="vibtn" checked>';
+        foreach ($categories as $index => $category) {
+            $html .= '<input type="radio" name="rank_tab" id="tab_' . esc_attr($category->slug) . '" class="vibtn">';
+        }
+        $html .= '<ul class="lmf-tab_list">';
+        $html .= '<li><label for="tab_check01">すべて</label></li>';
+        foreach ($categories as $category) {
+            $html .= '<li><label for="tab_' . esc_attr($category->slug) . '">' . esc_attr($category->name) . '</label></li>';
+        }
+        $html .= '</ul>';
+
+
+
+        $html .= '<div class="lmf-tab_area">';
+        $html .= '<section class="section">';
+        $html .= '<ul class="lmf-card_list">';
         // カテゴリーすべてを取得
         $event_query_args = [
             'post_type'      => 'event',
@@ -274,110 +757,141 @@ class endpoints
             ];
         }
 
+
         if (!empty($applied_event_ids)) {
-            $event_query_args['post__not_in'] = $applied_event_ids; // 申し込まれていないイベントを取得
-        }
-
-        $event_query = new WP_Query($event_query_args);
-
-        while ($event_query->have_posts()) {
-            $event_query->the_post();
-            $event_id = get_the_ID();
-            $event_title = get_the_title();
-
-            $event_date = get_post_meta($event_id, 'event_date', true);
-            $event_date_override = get_post_meta($event_id, 'event_date_override', true);
-            $formatted_date = '';
-            if ($event_date_override) {
-                $formatted_date = $event_date_override;
-            } else {
-                if (!empty($event_date)) {
-                    $date = new DateTime($event_date);
-                    // 整形した日付を生成
-                    $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
-                }
-            }
-
-            $html .= '<ul class="lmf-card_list">';
-            $html .= '<li><a href="https://liff.line.me/' . $liff_id_event_entry . '?event_id=' . $event_id . '&user_id=' . $user_id . '">';
-            $html .= '<p class="data_box">' . $formatted_date . '</p>';
-            $html .= '<h3 class="name">' . $event_title . '</h3>';
-            // タグ
-            $tags = get_the_terms($event_id, 'event_tag'); // デフォルトのタグタクソノミー
-            $formatted_tag_icon = '';
-            if ($tags && !is_wp_error($tags)) {
-                foreach ($tags as $tag) {
-                    $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
-                    if (!$icon_class_name) {
-                        $icon_class_name = 'icon_or';
-                    }
-                    // タグ名を <span> で囲む
-                    $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
-                }
-            }
-            $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
-            $html .= '</ul>';
-        }
-        $html .= '</section>';
-        wp_reset_postdata();
-
-        // カテゴリーごと
-        foreach ($categories as $category) {
-            $event_query_args['tax_query'] = [
-                [
-                    'taxonomy' => 'event_category',
-                    'field'    => 'slug',
-                    'terms'    => $category->slug,
-                ],
-            ];
+            $event_query_args['post__in'] = $applied_event_ids; // 申し込まれていないイベントを取得
             $event_query = new WP_Query($event_query_args);
-            $html .= '<section class="section">';
-            if($member_rank != 'ゲスト' || ($member_rank == 'ゲスト' && $category->slug == 'check02')) {
-                while ($event_query->have_posts()) {
-                    $event_query->the_post();
-                    $event_id = get_the_ID();
-                    $event_title = get_the_title();
-    
-    
-                    $event_date = get_post_meta($event_id, 'event_date', true);
-                    $event_date_override = get_post_meta($event_id, 'event_date_override', true);
-                    $formatted_date = '';
-                    if ($event_date_override) {
-                        $formatted_date = $event_date_override;
-                    } else {
-                        if (!empty($event_date)) {
-                            $date = new DateTime($event_date);
-                            // 整形した日付を生成
-                            $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
-                        }
-                    }
-    
-                    $html .= '<ul class="lmf-card_list">';
-                    $html .= '<li><a href="https://liff.line.me/' . $liff_id_event_entry . '?event_id=' . $event_id . '&user_id=' . $user_id . '">';
-                    $html .= '<p class="data_box">' . $formatted_date . '</p>';
-                    $html .= '<h3 class="name">' . $event_title . '</h3>';
-                    // タグ
-                    $tags = get_the_terms($event_id, 'event_tag'); // デフォルトのタグタクソノミー
-                    $formatted_tag_icon = '';
-                    if ($tags && !is_wp_error($tags)) {
-                        foreach ($tags as $tag) {
-                            $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
-                            if (!$icon_class_name) {
-                                $icon_class_name = 'icon_or';
-                            }
-                            // タグ名を <span> で囲む
-                            $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
-                        }
-                    }
-                    $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
-    
-                    $html .= '</ul>';
+            $previous_month = null;
+            $current_month = null;
+
+            while ($event_query->have_posts()) {
+                $event_query->the_post();
+                $event_id = get_the_ID();
+                $event_title = get_the_title();
+
+                $event_date = get_post_meta($event_id, 'event_date', true);
+                $event_date_override = get_post_meta($event_id, 'event_date_override', true);
+                $formatted_date = '';
+
+                $entried_icon = '';
+                if (in_array($event_id, $applied_event_ids)) {
+                    $entried_icon = '<div class="lmf-status_box"><span class="icon already">申込済み</span></div>';
                 }
+                if ($event_date_override) {
+                    $formatted_date = $event_date_override;
+                } else {
+                    if (!empty($event_date)) {
+                        $date = new DateTime($event_date);
+                        // 整形した日付を生成
+                        $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
+                        $current_month = $date->format('Y年n月');
+                    }
+                }
+
+                // 月が変わったらラベルを挿入
+                if ($previous_month !== $current_month) {
+                    $html .= '<h2 class="lmf-title02">' . $current_month . '</h2>';
+                    $previous_month = $current_month;
+                }
+
+
+                $html .= '<li>' . $entried_icon . '<a href="https://liff.line.me/' . $liff_id_entried_event . '?event_id=' . $event_id . '">';
+                $html .= '<p class="data_box">' . $formatted_date . '</p>';
+                $html .= '<h3 class="name">' . $event_title . '</h3>';
+                // タグ
+                $tags = get_the_terms($event_id, 'event_tag'); // デフォルトのタグタクソノミー
+                $formatted_tag_icon = '';
+                if ($tags && !is_wp_error($tags)) {
+                    foreach ($tags as $tag) {
+                        $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
+                        if (!$icon_class_name) {
+                            $icon_class_name = 'icon_or';
+                        }
+                        // タグ名を <span> で囲む
+                        $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
+                    }
+                }
+                $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
+                $html .= '</a>';
+                $html .= '</li>';
             }
-            
+            $html .= '</ul>';
             $html .= '</section>';
             wp_reset_postdata();
+
+            // カテゴリーごと
+            foreach ($categories as $category) {
+                $event_query_args['tax_query'] = [
+                    [
+                        'taxonomy' => 'event_category',
+                        'field'    => 'slug',
+                        'terms'    => $category->slug,
+                    ],
+                ];
+                $event_query = new WP_Query($event_query_args);
+                $previous_month = null;
+                $current_month = null;
+                $html .= '<section class="section">';
+                $html .= '<ul class="lmf-card_list">';
+                if ($member_rank != 'ゲスト' || ($member_rank == 'ゲスト' && $category->slug == 'check02')) {
+                    while ($event_query->have_posts()) {
+                        $event_query->the_post();
+                        $event_id = get_the_ID();
+                        $event_title = get_the_title();
+
+
+                        $event_date = get_post_meta($event_id, 'event_date', true);
+                        $event_date_override = get_post_meta($event_id, 'event_date_override', true);
+                        $formatted_date = '';
+                        $entried_icon = '';
+                        if (in_array($event_id, $applied_event_ids)) {
+                            $entried_icon = '<div class="lmf-status_box"><span class="icon already">申込済み</span></div>';
+                        }
+                        if ($event_date_override) {
+                            $formatted_date = $event_date_override;
+                        } else {
+                            if (!empty($event_date)) {
+                                $date = new DateTime($event_date);
+                                // 整形した日付を生成
+                                $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
+                                $current_month = $date->format('Y年n月');
+                            }
+                        }
+                        // 月が変わったらラベルを挿入
+                        if ($previous_month !== $current_month) {
+                            $html .= '<h2 class="lmf-title02">' . $current_month . '</h2>';
+                            $previous_month = $current_month;
+                        }
+
+
+                        $html .= '<li>' . $entried_icon . '<a href="https://liff.line.me/' . $liff_id_entried_event . '?event_id=' . $event_id . '">';
+                        $html .= '<p class="data_box">' . $formatted_date . '</p>';
+                        $html .= '<h3 class="name">' . $event_title . '</h3>';
+                        // タグ
+                        $tags = get_the_terms($event_id, 'event_tag'); // デフォルトのタグタクソノミー
+                        $formatted_tag_icon = '';
+                        if ($tags && !is_wp_error($tags)) {
+                            foreach ($tags as $tag) {
+                                $icon_class_name = get_term_meta($tag->term_id, 'icon_color', true);
+                                if (!$icon_class_name) {
+                                    $icon_class_name = 'icon_or';
+                                }
+                                // タグ名を <span> で囲む
+                                $formatted_tag_icon .= '<span class="icon ' . $icon_class_name . '">' . esc_html($tag->name) . '</span>';
+                            }
+                        }
+                        $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
+                        $html .= '</a>';
+                        $html .= '</li>';
+                    }
+                }
+                $html .= '</ul>';
+                $html .= '</section>';
+                wp_reset_postdata();
+            }
         }
+
+
 
 
         $html .= '</div>';
@@ -489,7 +1003,7 @@ class endpoints
                 [
                     'key'     => 'event_date', // カスタムフィールドのキー
                     'value'   => date('Y-m-d'), // 今日の日付
-                    'compare' => '>=',          // 今日以降の日付
+                    'compare' => '>',          // 今日以降の日付
                     'type'    => 'DATE',        // データ型を指定
                 ],
             ],
@@ -506,6 +1020,8 @@ class endpoints
         }
 
         $event_query = new WP_Query($event_query_args);
+        $previous_month = null;
+        $current_month = null;
         while ($event_query->have_posts()) {
             $event_query->the_post();
             $event_id = get_the_ID();
@@ -519,24 +1035,45 @@ class endpoints
             // }
             $entried_icon = '';
             if (in_array($event_id, $applied_event_ids)) {
-                $entried_icon = '<div class="lmf-status_box"><span class="icon already">申込済み済</span></div>';
+                $entried_icon = '<div class="lmf-status_box"><span class="icon already">申込済み</span></div>';
             }
             $event_date = get_post_meta($event_id, 'event_date', true);
             $event_date_override = get_post_meta($event_id, 'event_date_override', true);
             $formatted_date = '';
+            $date = new DateTime($event_date);
+            $current_month = $date->format('Y年n月');
             if ($event_date_override) {
                 $formatted_date = $event_date_override;
             } else {
                 if (!empty($event_date)) {
-                    $date = new DateTime($event_date);
                     // 整形した日付を生成
                     $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
                 }
             }
+            // 月が変わったらラベルを挿入
+            if ($previous_month !== $current_month) {
+                $html .= '<h2 class="lmf-title02">' . $current_month . '</h2>';
+                $previous_month = $current_month;
+            }
+
+            // 1ヶ月前までのイベントにはサムネイルを追加
+            $thumbnail = '';
+            $today = new DateTime(); // 今日の日付
+            $event_date_object = new DateTime($event_date);
+            // 30日後の計算
+            $thirty_days_later = clone $today;
+            $thirty_days_later->modify('+30 days');
+
+            $show_thumbnail = ($event_date_object >= $today && $event_date_object <= $thirty_days_later);
+            $thumbnail_url = get_the_post_thumbnail_url($event_id, 'full');
+            if ($show_thumbnail) {
+                $thumbnail = '<figure class="fig_box"><a href="https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '"><img src="' . $thumbnail_url . '" alt=""></a></figure>';
+            }
 
 
 
-            $html .= '<li>' . $entried_icon . '<a href="https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '&user_id=' . $user_id . '">';
+
+            $html .= '<li>' . $entried_icon . $thumbnail . '<a href="https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '">';
             $html .= '<p class="data_box">' . $formatted_date . '</p>';
             $html .= '<h3 class="name">' . $event_title . '</h3>';
 
@@ -572,11 +1109,13 @@ class endpoints
                     'terms'    => $category->slug,
                 ],
             ];
+            $previous_month = null;
+            $current_month = null;
             $event_query = new WP_Query($event_query_args);
             $html .= '<section class="section">';
             $html .= '<ul class="lmf-card_list">';
 
-            if($member_rank != 'ゲスト' || ($member_rank == 'ゲスト' && $category->slug == 'check02')) {
+            if ($member_rank != 'ゲスト' || ($member_rank == 'ゲスト' && $category->slug == 'check02')) {
                 while ($event_query->have_posts()) {
                     $event_query->the_post();
                     $event_id = get_the_ID();
@@ -584,25 +1123,54 @@ class endpoints
                     $event_types = get_post_meta($event_id, 'event_types', true); // カスタムフィールド
                     $term = get_queried_object();
                     $icon_class_name = get_term_meta($term->term_id, 'icon_color', true);
-    
+
                     // if (!empty($icon_color)) {
                     //     $icon_class_name .= '' . $icon_color;
                     // }
                     $entried_icon = '';
-    
+
                     if (in_array($event_id, $applied_event_ids)) {
-                        $entried_icon = '<div class="lmf-status_box"><span class="icon' . $icon_class_name . ' already">申込済み済</span></div>';
+                        $entried_icon = '<div class="lmf-status_box"><span class="icon' . $icon_class_name . ' already">申込済み</span></div>';
                     }
                     $event_date = get_post_meta($event_id, 'event_date', true); // カスタムフィールド
+                    $event_date_override = get_post_meta($event_id, 'event_date_override', true);
                     $formatted_date = '';
-                    if (!empty($event_date)) {
-                        $date = new DateTime($event_date);
-                        // 整形した日付を生成
-                        $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
+                    $date = new DateTime($event_date);
+                    $current_month = $date->format('Y年n月');
+                    if ($event_date_override) {
+                        $formatted_date = $event_date_override;
+                    } else {
+                        if (!empty($event_date)) {
+                            // 整形した日付を生成
+                            $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
+                        }
                     }
-    
-    
-                    $html .= '<li>' . $entried_icon . '<a href="https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '&user_id=' . $user_id . '">';
+                    // if (!empty($event_date)) {
+                    //     $date = new DateTime($event_date);
+                    //     // 整形した日付を生成
+                    //     $formatted_date = $date->format('Y年n月j日') . '（' . $weekdays[$date->format('w')] . '）';
+                    //     $current_month = $date->format('Y年n月');
+                    // }
+                    // 月が変わったらラベルを挿入
+                    if ($previous_month !== $current_month) {
+                        $html .= '<h2 class="lmf-title02">' . $current_month . '</h2>';
+                        $previous_month = $current_month;
+                    }
+                    // 1ヶ月前までのイベントにはサムネイルを追加
+                    $thumbnail = '';
+                    $today = new DateTime(); // 今日の日付
+                    $event_date_object = new DateTime($event_date);
+                    // 30日後の計算
+                    $thirty_days_later = clone $today;
+                    $thirty_days_later->modify('+30 days');
+
+                    $show_thumbnail = ($event_date_object >= $today && $event_date_object <= $thirty_days_later);
+                    $thumbnail_url = get_the_post_thumbnail_url($event_id, 'full');
+                    if ($show_thumbnail) {
+                        $thumbnail = '<figure class="fig_box"><a href="https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '"><img src="' . $thumbnail_url . '" alt=""></a></figure>';
+                    }
+
+                    $html .= '<li>' . $entried_icon . $thumbnail . '<a href="https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '">';
                     $html .= '<p class="data_box">' . $formatted_date . '</p>';
                     $html .= '<h3 class="name">' . $event_title . '</h3>';
                     // タグ
@@ -624,7 +1192,7 @@ class endpoints
                     $html .= '</li>';
                 }
             }
-            
+
             $html .= '</ul>';
             $html .= '</section>';
             wp_reset_postdata();
@@ -841,45 +1409,358 @@ class endpoints
         }
     }
 
-    static function update_line_user()
+    static function update_line_user($request)
     {
-        $access_token = get_option('channnel_access_token');
-        $channelSecret = get_option('channnel_access_token_secret');
-        $post_type = 'line_user';
-
-        $type = $_REQUEST['type'];
-        $line_id = $_REQUEST['line_id'];
-        //        unset($_REQUEST['line_id']);
-
-        $title = isset($_REQUEST['displayName']) ? $_REQUEST['displayName'] : ''; // お名前はタイトルで使用する
-        unset($_REQUEST['displayName']);
-
-        $args = array(
-            'post_type' => array($post_type), //投稿タイプを指定
-            'posts_per_page' => '-1', //取得する投稿件数を指定
-            'meta_key' => 'line_id', //カスタムフィールドのキーを指定
-            'meta_value' => $line_id, //カスタムフィールドの値を指定
-            'orderby' => 'meta_value', //ソートの基準を指定
-            'order' => 'asc' //ソート方法を指定（昇順：asc, 降順：desc）
-        );
-        $the_query = new WP_Query($args);
-        if ($the_query->have_posts()) {
-            while ($the_query->have_posts()) {
-                $the_query->the_post();
-                $post_id = get_the_ID();
-                //                    echo 'post-id='.$post_id;
-            }
-        } else {
-            return false;
-        }
+        $post_id = $request->get_param('post_id');
+        // echo json_encode(['post_id' => $post_id]);
+        // exit;
 
         if (is_array($_REQUEST)) {
             foreach ($_REQUEST as $key_name => $key_value) {
+                if ($key_name == 'post_id') {
+                    continue;
+                }
                 update_post_meta($post_id, $key_name, $key_value);
             }
         }
 
-        return true;
+        echo json_encode(['status' => 'success']);
+        exit;
+    }
+
+    static function get_profile($request)
+    {
+        $accessToken = $request->get_param('access_token');
+
+        // アクセストークンが存在しない場合は終了
+        if (!$accessToken) {
+            echo json_encode(['status' => 'error', 'message' => 'Access token is missing']);
+            exit;
+        }
+
+        // 1. アクセストークンからLINEユーザーID（line_id）を取得
+        $lineProfile = self::get_line_profile($accessToken);
+        if (!$lineProfile || !isset($lineProfile['userId'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to retrieve LINE user ID' . print_r($lineProfile, true)]);
+            exit;
+        }
+        $line_id = $lineProfile['userId'];
+
+        // 2. カスタム投稿タイプ line_user で line_id をキーに検索
+        $line_user_query = new WP_Query([
+            'post_type' => 'line_user',
+            'meta_query' => [
+                [
+                    'key' => 'line_id',
+                    'value' => $line_id,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        if ($line_user_query->have_posts()) {
+            $line_user_post_id = $line_user_query->posts[0]->ID;
+            $name = get_post_meta($line_user_post_id, 'name', true);
+            $campany_name = get_post_meta($line_user_post_id, 'campany_name', true);
+            $tel = get_post_meta($line_user_post_id, 'tel', true);
+            $email = get_post_meta($line_user_post_id, 'email', true);
+
+            $html = '';
+            $html .= '<div class="lmf-profile_block lmf-white_block">';
+            $html .= '<dl class="lmf-info_list">' . PHP_EOL;
+            $html .= '    <dt>名前</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $name . '</dd>' . PHP_EOL;
+            $html .= '    <dt>会社名</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $campany_name . '</dd>' . PHP_EOL;
+            $html .= '    <dt>電話番号</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $tel . '</dd>' . PHP_EOL;
+            $html .= '    <dt>メールアドレス</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $email . '</dd>' . PHP_EOL;
+            $html .= '</dl>' . PHP_EOL;
+            $html .= '</div>';
+            $html .= '<p class="lmf-btn_box btn_gy btn_small"><a href="profile_update.php?user_id=' . $line_user_post_id . '">登録情報を修正する</a></p>';
+            echo json_encode(['html' => $html]);
+            exit;
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'User data is missing']);
+            exit;
+        }
+    }
+
+    static function get_mypage($request)
+    {
+        $liff_id_event_schedule_history = get_option('liff_id_event_schedule_history');
+        $liff_id_profile = get_option('liff_id_profile');
+
+        $accessToken = $request->get_param('access_token');
+
+        // アクセストークンが存在しない場合は終了
+        if (!$accessToken) {
+            echo json_encode(['status' => 'error', 'message' => 'Access token is missing']);
+            exit;
+        }
+
+        // 1. アクセストークンからLINEユーザーID（line_id）を取得
+        $lineProfile = self::get_line_profile($accessToken);
+        if (!$lineProfile || !isset($lineProfile['userId'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to retrieve LINE user ID' . print_r($lineProfile, true)]);
+            exit;
+        }
+        $line_id = $lineProfile['userId'];
+
+        // 2. カスタム投稿タイプ line_user で line_id をキーに検索
+        $line_user_query = new WP_Query([
+            'post_type' => 'line_user',
+            'meta_query' => [
+                [
+                    'key' => 'line_id',
+                    'value' => $line_id,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        if ($line_user_query->have_posts()) {
+            // 3. line_user が存在すれば postID を取得
+            $line_user_post_id = $line_user_query->posts[0]->ID;
+            $name = get_post_meta($line_user_post_id, 'name', true);
+            $terms = wp_get_post_terms($line_user_post_id, 'line_user_category');
+            if (!empty($terms) && !is_wp_error($terms)) {
+                $line_user_category = $terms[0]->name;
+            }
+
+
+            // 出席状況の数を取得
+            // 申し込み
+            // 出席
+            $entry_history_status = self::get_entry_status('entry_history', $line_user_post_id);
+            $event_checkin_status = self::get_entry_status('event_checkin', $line_user_post_id);
+
+
+
+
+            // html生成
+            $html  = '<h2 class="name">' . $name . '</h2>' . PHP_EOL;
+            if (isset($line_user_category)):
+                $html .= '<div class="lmf-icon_box center"><span class="icon">' . $line_user_category . '</span></div>' . PHP_EOL;
+            endif;
+            $html .= '<dl class="lmf-attendance_list">' . PHP_EOL;
+            $html .= '    <dt>例会出席状況</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $event_checkin_status['check02'] . '/' . $entry_history_status['check02'] . '</dd>' . PHP_EOL;
+            $html .= '    <dt>勉強会出席状況</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $event_checkin_status['check03'] . '/' . $entry_history_status['check03'] . '</dd>' . PHP_EOL;
+            $html .= '    <dt>理事会出席状況</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $event_checkin_status['check04'] . '/' . $entry_history_status['check04'] . '</dd>' . PHP_EOL;
+            $html .= '</dl>' . PHP_EOL;
+            $html .= '<ul class="lmf-whbar_list">' . PHP_EOL;
+            $html .= '    <li><a href="https://liff.line.me/' . $liff_id_profile . '">登録情報修正</a></li>' . PHP_EOL;
+            $html .= '    <li><a href="https://liff.line.me/' . $liff_id_event_schedule_history . '">申し込み済みイベント</a></li>' . PHP_EOL;
+            $html .= '</ul>' . PHP_EOL;
+            echo json_encode(['contents_mypage' => $html]);
+            exit;
+        } else {
+            // 会員登録ページへリダイレクト https://liff.line.me/2006629843-MgmjwJxk
+            echo json_encode(['status' => 'error', 'message' => 'User ID is not found']);
+            exit;
+        }
+    }
+
+    static function get_entry_status($entry_type, $user_id)
+    {
+        $entry_history_query = new WP_Query([
+            'post_type'      => $entry_type,
+            'posts_per_page' => -1,
+            'meta_query'     => [
+                [
+                    'key'     => 'user_id',
+                    'value'   => $user_id,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        $event_ids = [];
+
+        if ($entry_history_query->have_posts()) {
+            while ($entry_history_query->have_posts()) {
+                $entry_history_query->the_post();
+                $event_ids[] = get_post_meta(get_the_ID(), 'event_id', true);
+            }
+        }
+        wp_reset_postdata();
+
+        // イベントがなければ空の配列を返す
+        $return = [
+            'check02' => 0,
+            'check03' => 0,
+            'check04' => 0,
+        ];
+        if (!empty($event_ids)) {
+            // 2. event_id をもとに event の category を取得
+            $event_category_count = [];
+
+            $event_query = new WP_Query([
+                'post_type'      => 'event',
+                'posts_per_page' => -1,
+                'post__in'       => $event_ids, // 取得したイベントのみ対象
+            ]);
+
+
+            if ($event_query->have_posts()) {
+                while ($event_query->have_posts()) {
+                    $event_query->the_post();
+                    $categories = get_the_terms(get_the_ID(), 'event_category');
+
+                    if (!empty($categories) && !is_wp_error($categories)) {
+                        foreach ($categories as $category) {
+                            $category_slug = $category->slug;
+                            switch ($category_slug) {
+                                case 'check02':
+                                    $return['check02']++;
+                                    break;
+                                case 'check03':
+                                    $return['check03']++;
+                                    break;
+                                case 'check04':
+                                    $return['check04']++;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+            wp_reset_postdata();
+        }
+        return $return;
+    }
+
+    /**
+     * accessTokenからline_idを取得しユーザーIDを取得する
+     * entry_request
+     * @return void 
+     */
+    static function get_user_id($request)
+    {
+        $event_id = $request->get_param('event_id');
+        $accessToken = $request->get_param('access_token');
+
+        // アクセストークンが存在しない場合は終了
+        if (!$accessToken) {
+            echo json_encode(['status' => 'error', 'message' => 'Access token is missing']);
+            exit;
+        }
+
+        // 1. アクセストークンからLINEユーザーID（line_id）を取得
+        $lineProfile = self::get_line_profile($accessToken);
+        if (!$lineProfile || !isset($lineProfile['userId'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to retrieve LINE user ID' . print_r($lineProfile, true)]);
+            exit;
+        }
+        $line_id = $lineProfile['userId'];
+
+        // 2. カスタム投稿タイプ line_user で line_id をキーに検索
+        $line_user_query = new WP_Query([
+            'post_type' => 'line_user',
+            'meta_query' => [
+                [
+                    'key' => 'line_id',
+                    'value' => $line_id,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        if ($line_user_query->have_posts()) {
+            // 3. line_user が存在すれば postID を取得
+            $line_user_post_id = $line_user_query->posts[0]->ID;
+        } else {
+            // 会員登録ページへリダイレクト https://liff.line.me/2006629843-MgmjwJxk
+            echo json_encode(['status' => 'error', 'message' => 'User ID is not found']);
+            exit;
+        }
+
+        // 6. 成功メッセージを返す
+        echo json_encode(['user_id' => $line_user_post_id]);
+        exit;
+    }
+
+    /**
+     * ユーザーが申し込み済みかどうか
+     * @param mixed $request 
+     * @return void 
+     */
+    static function is_user_entried($request)
+    {
+        $event_id = $request->get_param('event_id');
+        $accessToken = $request->get_param('access_token');
+
+        // アクセストークンが存在しない場合は終了
+        if (!$accessToken) {
+            echo json_encode(['status' => 'error', 'message' => 'Access token is missing']);
+            exit;
+        }
+
+        // 1. アクセストークンからLINEユーザーID（line_id）を取得
+        $lineProfile = self::get_line_profile($accessToken);
+        if (!$lineProfile || !isset($lineProfile['userId'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to retrieve LINE user ID' . print_r($lineProfile, true)]);
+            exit;
+        }
+        $line_id = $lineProfile['userId'];
+
+        // 2. カスタム投稿タイプ line_user で line_id をキーに検索
+        $line_user_query = new WP_Query([
+            'post_type' => 'line_user',
+            'meta_query' => [
+                [
+                    'key' => 'line_id',
+                    'value' => $line_id,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        if ($line_user_query->have_posts()) {
+            // 3. line_user が存在すれば postID を取得
+            $line_user_post_id = $line_user_query->posts[0]->ID;
+        } else {
+            // 会員登録ページへリダイレクト https://liff.line.me/2006629843-MgmjwJxk
+            echo json_encode(['status' => 'error', 'message' => 'User ID is not found']);
+            exit;
+        }
+
+        // 申し込み済みかどうかチェック
+        // entry_history から申し込まれたイベント ID を取得
+        $entry_history_query = new WP_Query([
+            'post_type' => 'entry_history',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                [
+                    'key' => 'user_id',
+                    'value' => $line_user_post_id,
+                    'compare' => '='
+                ],
+                [
+                    'key' => 'event_id',
+                    'value' => $event_id,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+        $entry_link_html = '';
+        $entried_icon_html = '';
+        if (!$entry_history_query->have_posts()) {
+            $liff_id_event_entry = get_option('liff_id_event_entry');
+            $entry_link = 'https://liff.line.me/' . $liff_id_event_entry . '?event_id=' . $event_id;
+            $entry_link_html = '<p class="lmf-btn_box"><a href="' . $entry_link . '">申し込みページへ移動</a></p>';
+        } else {
+            $entried_icon_html = '<div class="lmf-status_box"><span class="icon already">申込済み</span></div>';
+        }
+
+        // 6. 成功メッセージを返す
+        echo json_encode(['entry_link_html' => $entry_link_html, 'entried_icon_html' => $entried_icon_html]);
     }
 
 

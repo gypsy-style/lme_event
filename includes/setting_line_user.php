@@ -312,14 +312,15 @@ class settingLineUser
     {
         $item_name = 'member_type';
         $options = [
-            '会長',
-            '事務局長',
-            '顧問',
-            '幹事',
-            '本部役員',
-            '副会長',
-            '委員長',
-            '副委員長',
+            '1.会長',
+            '2.事務局長',
+			'3.事務局次長',
+            '4.顧問',
+            '5.幹事',
+            '6.本部役員',
+            '7.副会長',
+            '8.委員長',
+            '9.副委員長',
         ];
         $post_id = $post->ID;
         $values = get_post_meta($post_id, $item_name, true);
@@ -346,6 +347,10 @@ class settingLineUser
 
     static function save_custom_fields($post_ID)
     {
+        // ゴミ箱に入れられた場合は処理をスキップ
+        if (get_post_status($post_ID) === 'trash') {
+            return;
+        }
         $channel_access_token = get_option('channnel_access_token');
         $channel_secret = get_option('channnel_access_token_secret');
         //        $get_items = settings::$custom_fields;
@@ -373,12 +378,16 @@ class settingLineUser
             //            update_post_meta( $post_ID, 'richmenu_id', sanitize_text_field( $_POST['richmenu_id'] ) );
             // line apiからリッチメニューの更新
             if (isset($_POST['line_id'])) {
+                error_log('line_id is set: '.$_POST['line_id']);
                 if ($richmenu_id == "") {
+                    error_log('richmenu_id is empty');
                     //複数のユーザーのリッチメニューのリンクを解除する
                     $response = $bot->unlinkRichMenu($_POST['line_id']);
                 } else {
+                    error_log('richmenu_id is '.$richmenu_id.' line_id is '.$_POST['line_id']);
                     //リッチメニューと複数のユーザーをリンクする
                     $response = $bot->linkRichMenu($_POST['line_id'], $richmenu_id);
+                    error_log(print_r($response,true));
                 }
             }
 
