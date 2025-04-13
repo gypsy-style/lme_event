@@ -355,6 +355,7 @@ class settingLineUser
         $channel_secret = get_option('channnel_access_token_secret');
         //        $get_items = settings::$custom_fields;
         $get_items = self::$fields;
+        $checkbox_fields = ['member_type']; // 削除対象のみに限定
         foreach ($get_items as $item_name => $item_args) {
             if (isset($_POST[$item_name])) {
                 if (is_array($_POST[$item_name])) {
@@ -362,8 +363,7 @@ class settingLineUser
                 } else {
                     update_post_meta($post_ID, $item_name, sanitize_text_field($_POST[$item_name]));
                 }
-            }else {
-                // チェックボックスが空の場合、値を削除
+            } elseif (in_array($item_name, $checkbox_fields)) {
                 delete_post_meta($post_ID, $item_name);
             }
         }
@@ -378,16 +378,12 @@ class settingLineUser
             //            update_post_meta( $post_ID, 'richmenu_id', sanitize_text_field( $_POST['richmenu_id'] ) );
             // line apiからリッチメニューの更新
             if (isset($_POST['line_id'])) {
-                error_log('line_id is set: '.$_POST['line_id']);
                 if ($richmenu_id == "") {
-                    error_log('richmenu_id is empty');
                     //複数のユーザーのリッチメニューのリンクを解除する
                     $response = $bot->unlinkRichMenu($_POST['line_id']);
                 } else {
-                    error_log('richmenu_id is '.$richmenu_id.' line_id is '.$_POST['line_id']);
                     //リッチメニューと複数のユーザーをリンクする
                     $response = $bot->linkRichMenu($_POST['line_id'], $richmenu_id);
-                    error_log(print_r($response,true));
                 }
             }
 

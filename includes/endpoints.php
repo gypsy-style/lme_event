@@ -1002,8 +1002,8 @@ class endpoints
             'meta_query'     => [
                 [
                     'key'     => 'event_date', // カスタムフィールドのキー
-                    'value'   => date('Y-m-d'), // 今日の日付
-                    'compare' => '>',          // 今日以降の日付
+                    'value'   => current_time('Y-m-d'), // 今日の日付
+                    'compare' => '>=',          // 今日以降の日付
                     'type'    => 'DATE',        // データ型を指定
                 ],
             ],
@@ -1034,8 +1034,36 @@ class endpoints
             //     $icon_class_name .= '_' . $icon_color;
             // }
             $entried_icon = '';
+            $event_types_raw = '';
             if (in_array($event_id, $applied_event_ids)) {
                 $entried_icon = '<div class="lmf-status_box"><span class="icon already">申込済み</span></div>';
+                // イベント申し込み履歴entry_historyのtypesを取得
+                $entry_query = new WP_Query([
+                    'post_type'      => 'entry_history',
+                    'posts_per_page' => 1, // 複数可なら -1
+                    'meta_query'     => [
+                        [
+                            'key'     => 'user_id',
+                            'value'   => $user_id,
+                            'compare' => '='
+                        ],
+                        [
+                            'key'     => 'event_id',
+                            'value'   => $event_id,
+                            'compare' => '='
+                        ]
+                    ]
+                ]);
+                if ($entry_query->have_posts()) {
+                    $entry_query->the_post();
+                    $entry_post_id = get_the_ID();
+                    // event_types を配列化＆HTMLリストに変換
+                    $event_types_raw = get_post_meta($entry_post_id, 'event_types', true);
+                    // 吹き出しのhtml
+                }
+                wp_reset_postdata();
+            } elseif (empty($event_types)) {
+                $entried_icon = '<div class="lmf-status_box"><span class="icon">募集前</span></div>';
             }
             $event_date = get_post_meta($event_id, 'event_date', true);
             $event_date_override = get_post_meta($event_id, 'event_date_override', true);
@@ -1059,7 +1087,9 @@ class endpoints
             // 1ヶ月前までのイベントにはサムネイルを追加
             $thumbnail = '';
             $today = new DateTime(); // 今日の日付
+            $today->setTime(0, 0, 0);
             $event_date_object = new DateTime($event_date);
+            $event_date_object->setTime(0, 0, 0);
             // 30日後の計算
             $thirty_days_later = clone $today;
             $thirty_days_later->modify('+30 days');
@@ -1069,9 +1099,6 @@ class endpoints
             if ($show_thumbnail) {
                 $thumbnail = '<figure class="fig_box"><a href="https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '"><img src="' . $thumbnail_url . '" alt=""></a></figure>';
             }
-
-
-
 
             $html .= '<li>' . $entried_icon . $thumbnail . '<a href="https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '">';
             $html .= '<p class="data_box">' . $formatted_date . '</p>';
@@ -1094,6 +1121,11 @@ class endpoints
             }
             $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
             $html .= '</a>';
+            if (!empty($event_types_raw)):
+                $html .= '<div class="lmf-card_bottom">';
+                $html .= '<div class="lmf-fuki_box"><p class="text">' . $event_types_raw . '</p></div>';
+                $html .= '</div>';
+            endif;
             $html .= '</li>';
         }
         $html .= '</ul>';
@@ -1128,9 +1160,37 @@ class endpoints
                     //     $icon_class_name .= '' . $icon_color;
                     // }
                     $entried_icon = '';
+                    $event_types_raw = '';
 
                     if (in_array($event_id, $applied_event_ids)) {
                         $entried_icon = '<div class="lmf-status_box"><span class="icon' . $icon_class_name . ' already">申込済み</span></div>';
+                        // イベント申し込み履歴entry_historyのtypesを取得
+                        $entry_query = new WP_Query([
+                            'post_type'      => 'entry_history',
+                            'posts_per_page' => 1, // 複数可なら -1
+                            'meta_query'     => [
+                                [
+                                    'key'     => 'user_id',
+                                    'value'   => $user_id,
+                                    'compare' => '='
+                                ],
+                                [
+                                    'key'     => 'event_id',
+                                    'value'   => $event_id,
+                                    'compare' => '='
+                                ]
+                            ]
+                        ]);
+                        if ($entry_query->have_posts()) {
+                            $entry_query->the_post();
+                            $entry_post_id = get_the_ID();
+                            // event_types を配列化＆HTMLリストに変換
+                            $event_types_raw = get_post_meta($entry_post_id, 'event_types', true);
+                            // 吹き出しのhtml
+                        }
+                        wp_reset_postdata();
+                    } elseif (empty($event_types)) {
+                        $entried_icon = '<div class="lmf-status_box"><span class="icon">募集前</span></div>';
                     }
                     $event_date = get_post_meta($event_id, 'event_date', true); // カスタムフィールド
                     $event_date_override = get_post_meta($event_id, 'event_date_override', true);
@@ -1159,7 +1219,9 @@ class endpoints
                     // 1ヶ月前までのイベントにはサムネイルを追加
                     $thumbnail = '';
                     $today = new DateTime(); // 今日の日付
+                    $today->setTime(0, 0, 0);
                     $event_date_object = new DateTime($event_date);
+                    $event_date_object->setTime(0, 0, 0);
                     // 30日後の計算
                     $thirty_days_later = clone $today;
                     $thirty_days_later->modify('+30 days');
@@ -1189,6 +1251,11 @@ class endpoints
                     }
                     $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
                     $html .= '</a>';
+                    if (!empty($event_types_raw)):
+                        $html .= '<div class="lmf-card_bottom">';
+                        $html .= '<div class="lmf-fuki_box"><p class="text">' . $event_types_raw . '</p></div>';
+                        $html .= '</div>';
+                    endif;
                     $html .= '</li>';
                 }
             }
@@ -1536,6 +1603,35 @@ class endpoints
             $entry_history_status = self::get_entry_status('entry_history', $line_user_post_id);
             $event_checkin_status = self::get_entry_status('event_checkin', $line_user_post_id);
 
+            $event_categories = get_terms([
+                'taxonomy'   => 'event_category',
+                'hide_empty' => false,
+            ]);
+
+            $category_counts = [];
+            $categories = [
+                'check02',
+                'check03',
+                'check04'
+            ];
+            if (!empty($event_categories)) {
+                foreach ($categories as $category) {
+                    $count = new WP_Query([
+                        'post_type'      => 'event',
+                        'posts_per_page' => -1,
+                        'tax_query'      => [
+                            [
+                                'taxonomy' => 'event_category',
+                                'field'    => 'slug',
+                                'terms'    => $category,
+                            ],
+                        ],
+                    ]);
+                    $category_counts[$category] = $count->found_posts;
+                    wp_reset_postdata();
+                }
+            }
+
 
 
 
@@ -1545,12 +1641,12 @@ class endpoints
                 $html .= '<div class="lmf-icon_box center"><span class="icon">' . $line_user_category . '</span></div>' . PHP_EOL;
             endif;
             $html .= '<dl class="lmf-attendance_list">' . PHP_EOL;
-            $html .= '    <dt>例会出席状況</dt>' . PHP_EOL;
-            $html .= '    <dd>' . $event_checkin_status['check02'] . '/' . $entry_history_status['check02'] . '</dd>' . PHP_EOL;
-            $html .= '    <dt>勉強会出席状況</dt>' . PHP_EOL;
-            $html .= '    <dd>' . $event_checkin_status['check03'] . '/' . $entry_history_status['check03'] . '</dd>' . PHP_EOL;
-            $html .= '    <dt>理事会出席状況</dt>' . PHP_EOL;
-            $html .= '    <dd>' . $event_checkin_status['check04'] . '/' . $entry_history_status['check04'] . '</dd>' . PHP_EOL;
+            $html .= '    <dt>例会チェックイン状況</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $event_checkin_status['check02'] . '/' . $category_counts['check02'] . '</dd>' . PHP_EOL;
+            $html .= '    <dt>勉強会チェックイン状況</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $event_checkin_status['check03'] . '/' . $category_counts['check03'] . '</dd>' . PHP_EOL;
+            $html .= '    <dt>理事会チェックイン状況</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $event_checkin_status['check04'] . '/' . $category_counts['check04'] . '</dd>' . PHP_EOL;
             $html .= '</dl>' . PHP_EOL;
             $html .= '<ul class="lmf-whbar_list">' . PHP_EOL;
             $html .= '    <li><a href="https://liff.line.me/' . $liff_id_profile . '">登録情報修正</a></li>' . PHP_EOL;
@@ -1751,16 +1847,22 @@ class endpoints
         ]);
         $entry_link_html = '';
         $entried_icon_html = '';
+        $event_types_raw = '';
         if (!$entry_history_query->have_posts()) {
             $liff_id_event_entry = get_option('liff_id_event_entry');
             $entry_link = 'https://liff.line.me/' . $liff_id_event_entry . '?event_id=' . $event_id;
             $entry_link_html = '<p class="lmf-btn_box"><a href="' . $entry_link . '">申し込みページへ移動</a></p>';
         } else {
             $entried_icon_html = '<div class="lmf-status_box"><span class="icon already">申込済み</span></div>';
+            $entry_history_query->the_post();
+            $entry_post_id = get_the_ID();
+            // event_types を配列化＆HTMLリストに変換
+            $event_types_raw = get_post_meta($entry_post_id, 'event_types', true);
+            
         }
 
         // 6. 成功メッセージを返す
-        echo json_encode(['entry_link_html' => $entry_link_html, 'entried_icon_html' => $entried_icon_html]);
+        echo json_encode(['entry_link_html' => $entry_link_html, 'entried_icon_html' => $entried_icon_html, 'event_types_raw' => $event_types_raw]);
     }
 
 

@@ -219,8 +219,14 @@ if ($event_post && $event_post->post_type === 'event') {
 				}).done(function(response) {
 					const entry_link_html = response.entry_link_html;
 					const entried_icon_html = response.entried_icon_html;
+					const event_types_raw = response.event_types_raw;
 					$('#entry_link').html(entry_link_html);
 					$('#entried_icon').html(entried_icon_html);
+					if(event_types_raw) {
+						$('#event_types_raw').show();
+						$('#event_types_raw .text').text(event_types_raw);
+					}
+					
 
 				}).fail(function(XMLHttpRequest, textStatus, errorThrown) {
 					alert(errorThrown);
@@ -259,6 +265,7 @@ if ($event_post && $event_post->post_type === 'event') {
 					<?php
 					endif; ?>
 					<h2><?= $title; ?></h2>
+					<div class="lmf-fuki_box" id="event_types_raw" style="display:none;"><p class="text"></p></div>
 					<h3><?= esc_html($event_subtitle); ?></h3>
 					<?= $event_content; ?>
 					<dl class="lmf-info_list--v">
