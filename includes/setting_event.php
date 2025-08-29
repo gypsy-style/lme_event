@@ -30,6 +30,7 @@ class settingEvent
         'speaker_name' => '講師名', // テキスト
         'speaker_profile' => '講師プロフィール', // テキストエリア
         'event_types' => 'イベントタイプ', // テキスト
+        'checkin_event_types' => '参加集計用意項目', // テキスト
         'event_checkin' => 'イベントチェックインURL', // テキスト
         'event_stop_entry' => '受付終了', // チェックボックス
     ];
@@ -298,6 +299,15 @@ class settingEvent
     <?php
     }
 
+    static function render_field_checkin_event_types($post)
+    {
+        $value = get_post_meta($post->ID, 'checkin_event_types', true);
+    ?>
+        <p>カンマ区切り</p>
+        <input type="text" id="checkin_event_types" name="checkin_event_types" class="large-text" value="<?= esc_attr($value); ?>">
+    <?php
+    }
+
     static function render_field_event_checkin($post)
     {
         $liff_id_event_checkin = get_option('liff_id_event_checkin');
@@ -348,8 +358,12 @@ class settingEvent
                         update_post_meta($post_ID, $key, sanitize_text_field($_POST[$key]));
                     }
                 }
-            } else {
+            } elseif (array_key_exists($key, $_POST)) {
+                // 明示的に空が送られてきた場合のみ削除
                 delete_post_meta($post_ID, $key);
+            } else {
+                // クイック編集などで未送信なら何もしない
+                continue;
             }
         }
     }

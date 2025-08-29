@@ -936,8 +936,15 @@ class settings
         //        $get_items = settings::$custom_fields;
         $get_items = custom_fields::$custom_fields;
         foreach ($get_items as $item_name => $item_args) {
+            // if (isset($_POST[$item_name])) {
+            //     update_post_meta($post_ID, $item_name, $_POST[$item_name]);
+            // }
             if (isset($_POST[$item_name])) {
-                update_post_meta($post_ID, $item_name, $_POST[$item_name]);
+                if (is_array($_POST[$item_name])) {
+                    update_post_meta($post_ID, $item_name, array_map('sanitize_text_field', $_POST[$item_name]));
+                } else {
+                    update_post_meta($post_ID, $item_name, sanitize_text_field($_POST[$item_name]));
+                }
             }
         }
 

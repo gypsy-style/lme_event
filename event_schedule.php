@@ -220,8 +220,13 @@ if ($event_post && $event_post->post_type === 'event') {
 					const entry_link_html = response.entry_link_html;
 					const entried_icon_html = response.entried_icon_html;
 					const event_types_raw = response.event_types_raw;
+					const member_rank = response.member_rank;
 					$('#entry_link').html(entry_link_html);
 					$('#entried_icon').html(entried_icon_html);
+					if(member_rank == "理事") {
+						$('#checkAttendance').show();
+					}
+					
 					if(event_types_raw) {
 						$('#event_types_raw').show();
 						$('#event_types_raw .text').text(event_types_raw);
@@ -247,6 +252,7 @@ if ($event_post && $event_post->post_type === 'event') {
 			<section class="lmf-content">
 				<ul class="lmf-pnavi_list clearfix">
 					<li class="back"><a href="event_list.php">一覧へ戻る</a></li>
+					<li class="lmf-link_box triangle" id="checkAttendance" style="display:none;"><a href="https://lme-event.net/mosaka-vtu28U6Y/event-join-all?event_id=<?=$event_id;?>">出欠・チェックイン確認</a></li>
 				</ul>
 				<div class="lmf-single_block schedule lmf-white_block">
 					<div id="entried_icon"></div>

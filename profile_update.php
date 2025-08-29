@@ -12,6 +12,7 @@ if (!$line_user_post_id) {
     exit;
 }
 $name = get_post_meta($line_user_post_id, 'name', true);
+$sex = get_post_meta($line_user_post_id, 'sex', true);
 $campany_name = get_post_meta($line_user_post_id, 'campany_name', true);
 $tel = get_post_meta($line_user_post_id, 'tel', true);
 $email = get_post_meta($line_user_post_id, 'email', true);
@@ -73,51 +74,76 @@ $email = get_post_meta($line_user_post_id, 'email', true);
             });
 
 
+            // $('#form').submit(function(event) {
+            //     console.log('submit')
+            //     event.preventDefault();
+            //     let type = 'register';
+
+            //     let form = document.getElementById('form');
+            //     // console.log(document.forms.line-members-form);
+            //     let formData = new FormData(form);
+
+            //     // console.log(values);
+            //     let post = {};
+            //     const pushMessage = '【会員登録済】';
+            //     let same_radio;
+            //     let birthdayMessage;
+            //     $("#form :input").each(function() {
+            //         const input = $(this); // This is the jquery object of the input, do what you will
+            //         const input_name = input.attr('name');
+            //         const val = $('#' + input_name).val();
+            //         post[input_name] = val;
+
+            //     });
+
+
+            //     $.ajax({
+            //         type: "GET",
+            //         url: "<?= home_url(); ?>/wp-json/wp/v2/update_line_user",
+            //         dataType: "json",
+            //         data: post
+            //     }).done(function(response) {
+            //         console.log(response);
+            //         if (response.status == 'success') {
+            //             alert('更新完了しました');
+            //             // profileへリダイレクト
+            //             const liffIDProfile = "<?= get_option('liff_id_profile'); ?>";
+            //             location.href = "https://liff.line.me/" + liffIDProfile;
+            //         } else {
+            //             alert('更新に失敗しました');
+            //         }
+            //         // liff.closeWindow();
+            //     }).fail(function(XMLHttpRequest, textStatus, errorThrown) {
+            //         alert(errorThrown);
+            //     });
+            //     event.preventDefault();
+
+            // });
+
             $('#form').submit(function(event) {
-                console.log('submit')
                 event.preventDefault();
-                let type = 'register';
 
-                let form = document.getElementById('form');
-                // console.log(document.forms.line-members-form);
-                let formData = new FormData(document.forms.form);
-                // console.log(formData);
-                let values = formData.values();
-                // console.log(values);
-                let post = {};
-                const pushMessage = '【会員登録済】';
-                let same_radio;
-                let birthdayMessage;
-                $("#form :input").each(function() {
-                    const input = $(this); // This is the jquery object of the input, do what you will
-                    const input_name = input.attr('name');
-                    const val = $('#' + input_name).val();
-                    post[input_name] = val;
-                    
-                });
-
+                const form = document.getElementById('form');
+                const formData = new FormData(form); // ファイルも含む
 
                 $.ajax({
-                    type: "GET",
+                    type: "POST",
                     url: "<?= home_url(); ?>/wp-json/wp/v2/update_line_user",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     dataType: "json",
-                    data:post
                 }).done(function(response) {
-                    console.log(response);
-                    if(response.status == 'success') {
+                    if (response.status == 'success') {
                         alert('更新完了しました');
-                        // profileへリダイレクト
-                        const liffIDProfile = "<?=get_option('liff_id_profile');?>";
-                        location.href="https://liff.line.me/"+liffIDProfile;
-                    }else {
+                        const liffIDProfile = "<?= get_option('liff_id_profile'); ?>";
+                        location.href = "https://liff.line.me/" + liffIDProfile;
+                    } else {
                         alert('更新に失敗しました');
                     }
-                    // liff.closeWindow();
-                }).fail(function(XMLHttpRequest, textStatus, errorThrown) {
-                    alert(errorThrown);
+                }).fail(function(xhr, status, error) {
+                    alert(error);
                 });
-                event.preventDefault();
-
             });
         });
     </script>
@@ -131,22 +157,33 @@ $email = get_post_meta($line_user_post_id, 'email', true);
 
         <main class="lmf-main_contents">
             <section class="lmf-content">
-                <form id="form">
+                <form id="form" enctype="multipart/form-data">
                     <div class="lmf-profedit_block lmf-white_block">
                         <p class="mB20">下記内容を入力いただき登録ボタンを押してください。</p>
                         <dl class="lmf-form_box">
                             <dt><label for="name">名前</label></dt>
                             <dd><em class="input"><input type="text" name="name" id="name" value="<?= $name; ?>"></em></dd>
+                            <dt><label for="name">性別</label></dt>
+                            <dd><select name="sex" id="sex">
+                                    <option value="">----選択してください----</option>
+                                    <option value="男性" <?= $sex == '男性' ? ' selected' : ''; ?>>男性</option>
+                                    <option value="女性" <?= $sex == '女性' ? ' selected' : ''; ?>>女性</option>
+                                    <option value="その他" <?= $sex == 'その他' ? ' selected' : ''; ?>>その他</option>
+                                </select></dd>
                             <dt><label for="addr">会社名</label></dt>
                             <dd><em class="input"><input type="text" name="campany_name" value="<?= $campany_name; ?>" id="campany_name"></em></dd>
                             <dt><label for="tel">電話番号</label></dt>
                             <dd><em class="input"><input type="tel" name="tel" id="tel" value="<?= $tel; ?>"></em></dd>
                             <dt><label for="tel">メールアドレス</label></dt>
                             <dd><em class="input"><input type="email" name="email" id="email" value="<?= $email; ?>"></em></dd>
+                            <dt><label for="thumbnail">プロフィール画像</label></dt>
+                            <dd><input type="file" name="thumbnail" id="thumbnail" accept="image/*"></dd>
+                            <dt><label for="message">メッセージ</label></dt>
+                            <dd><em class="input"><input type="text" name="message" value="<?= $message; ?>" id="message"></em></dd>
                         </dl>
                     </div>
 
-                    <input type="hidden" name="post_id" id="post_id" value="<?=$line_user_post_id;?>">
+                    <input type="hidden" name="post_id" id="post_id" value="<?= $line_user_post_id; ?>">
                     <p class="lmf-btn_box btn_gy"><button type="submit">更新する</button></p>
                 </form>
             </section>

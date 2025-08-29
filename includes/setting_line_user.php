@@ -24,6 +24,7 @@ class settingLineUser
         'email' => 'メールアドレス',
         'sex' => '性別',
         'member_type' => '理事カテゴリー',
+        'message' => 'メッセージ',
 
     ];
 
@@ -59,7 +60,7 @@ class settingLineUser
                     'custom-fields', //カスタムフィールド
                     'revisions'  //リビジョンを保存
                 ),
-                'taxonomies' => array($post_type.'_category'), // カテゴリーを追加
+                'taxonomies' => array($post_type . '_category'), // カテゴリーを追加
                 'menu_position' => 5, //「投稿」の下に追加
             )
         );
@@ -73,7 +74,7 @@ class settingLineUser
         // カテゴリーの登録
         $post_type = self::POST_TYPE;
         register_taxonomy(
-            $post_type.'_category',
+            $post_type . '_category',
             $post_type,
             array(
                 'labels' => array(
@@ -95,7 +96,6 @@ class settingLineUser
                 'show_in_rest' => true,
             )
         );
-
     }
 
     /**
@@ -141,6 +141,7 @@ class settingLineUser
             'トライアル',
             '会員',
             '理事',
+            '管理者',
         ];
         $post_id = $post->ID;
         $value = get_post_meta($post_id, $item_name, true);
@@ -314,13 +315,13 @@ class settingLineUser
         $options = [
             '1.会長',
             '2.事務局長',
-			'3.事務局次長',
-            '4.顧問',
-            '5.幹事',
-            '6.本部役員',
-            '7.副会長',
-            '8.委員長',
-            '9.副委員長',
+            '3.事務局次長',
+            '4.副会長',
+            '5.委員長',
+            '6.副委員長',
+            '7.顧問',
+            '8.幹事',
+            '9.本部役員',
         ];
         $post_id = $post->ID;
         $values = get_post_meta($post_id, $item_name, true);
@@ -335,6 +336,17 @@ class settingLineUser
                 </label><br>
             <?php endforeach; ?>
         </fieldset>
+    <?php
+    }
+
+    static function show_message($post)
+    {
+        $item_name = 'message';
+        $post_id = $post->ID;
+        $value = get_post_meta($post_id, $item_name, true);
+    ?>
+
+        <input type="text" id="<?= $item_name; ?>" name="<?= $item_name; ?>" value="<?= esc_attr($value); ?>">
 <?php
     }
 
@@ -356,14 +368,21 @@ class settingLineUser
         //        $get_items = settings::$custom_fields;
         $get_items = self::$fields;
         $checkbox_fields = ['member_type']; // 削除対象のみに限定
+
+        // クイック編集かどうかを判定
+        $is_quick_edit = isset($_POST['_inline_edit']);
+
         foreach ($get_items as $item_name => $item_args) {
+            if ($is_quick_edit && $item_name === 'member_type') {
+                continue;
+            }
             if (isset($_POST[$item_name])) {
                 if (is_array($_POST[$item_name])) {
                     update_post_meta($post_ID, $item_name, $_POST[$item_name]);
                 } else {
                     update_post_meta($post_ID, $item_name, sanitize_text_field($_POST[$item_name]));
                 }
-            } elseif (in_array($item_name, $checkbox_fields)) {
+            } elseif (in_array($item_name, $checkbox_fields) && !$is_quick_edit) {
                 delete_post_meta($post_ID, $item_name);
             }
         }

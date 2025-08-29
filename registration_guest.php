@@ -7,17 +7,6 @@ require_once('extensions/custom_fields.php');
 $custom_fields = custom_fields::$custom_fields;
 $after_registration_action = get_option('after_registration_action');
 $show_banner = get_option('show_banner');
-$regist_type = 'member';
-if(isset($_GET['type'])) {
-    switch($_GET['type']) {
-        case 'guest':
-            $regist_type = 'guest';
-            break;
-        default:
-            break;
-    }
-}
-
 
 ?>
 <!DOCTYPE html>
@@ -180,21 +169,6 @@ if(isset($_GET['type'])) {
                             <dd><em class="input"><input type="text" name="campany_name" id="campany_name"></em></dd>
                             <dt><label for="name">名前</label></dt>
                             <dd><em class="input"><input type="text" name="name" id="name"></em></dd>
-                            <?php
-                            if($regist_type == 'member'):?>
-                            <dt><label for="tel">電話番号</label></dt>
-                            <dd><em class="input"><input type="tel" name="tel" id="tel"></em></dd>
-                            <dt><label for="tel">メールアドレス</label></dt>
-                            <dd><em class="input"><input type="email" name="email" id="email"></em></dd>
-                            <dt><label for="sex">性別</label></dt>
-                            <dd><select name="sex" id="sex">
-                                    <option value="">----選択してください----</option>
-                                    <option value="">男性</option>
-                                    <option value="">女性</option>
-                                    <option value="">その他</option>
-                                </select></dd>
-                                <?php
-                                endif;?>
                             <dd class="text">登録にあたり南大阪経営研究会の<a href="privacy.html">利用規約</a>をご確認ください。</dd>
                             <dd class="center"><label for="term"><input type="checkbox" name="term" id="term">利用規約に同意する</label></dd>
                         </dl>

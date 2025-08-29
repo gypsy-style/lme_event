@@ -1121,6 +1121,11 @@ class endpoints
             }
             $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
             $html .= '</a>';
+            if ($member_rank == '理事'):
+                $html .= '<div class="lmf-card_bottom">';
+                $html .= '<p class="lmf-link_box triangle bold right"><a href="https://lme-event.net/mosaka-vtu28U6Y/event-join-all?event_id=' . $event_id . '">出欠・チェックイン確認</a></p>';
+                $html .= '</div>';
+            endif;
             if (!empty($event_types_raw)):
                 $html .= '<div class="lmf-card_bottom">';
                 $html .= '<div class="lmf-fuki_box"><p class="text">' . $event_types_raw . '</p></div>';
@@ -1251,9 +1256,15 @@ class endpoints
                     }
                     $html .= '<div class="lmf-icon_box">' . $formatted_tag_icon . '</div>';
                     $html .= '</a>';
+                    if ($member_rank == '理事'):
+                        $html .= '<div class="lmf-card_bottom">';
+                        $html .= '<p class="lmf-link_box triangle bold right"><a href="https://lme-event.net/mosaka-vtu28U6Y/event-join-all?event_id=' . $event_id . '">出欠・チェックイン確認</a></p>';
+                        $html .= '</div>';
+                    endif;
                     if (!empty($event_types_raw)):
                         $html .= '<div class="lmf-card_bottom">';
                         $html .= '<div class="lmf-fuki_box"><p class="text">' . $event_types_raw . '</p></div>';
+
                         $html .= '</div>';
                     endif;
                     $html .= '</li>';
@@ -1476,7 +1487,7 @@ class endpoints
         }
     }
 
-    static function update_line_user($request)
+    static function _update_line_user($request)
     {
         $post_id = $request->get_param('post_id');
         // echo json_encode(['post_id' => $post_id]);
@@ -1488,6 +1499,40 @@ class endpoints
                     continue;
                 }
                 update_post_meta($post_id, $key_name, $key_value);
+            }
+        }
+
+        echo json_encode(['status' => 'success']);
+        exit;
+    }
+
+    static function update_line_user($request)
+    {
+        $post_id = $request->get_param('post_id');
+
+        // 通常のmeta更新処理
+        if (is_array($_REQUEST)) {
+            foreach ($_REQUEST as $key_name => $key_value) {
+                if ($key_name == 'post_id' || $key_name == 'thumbnail') {
+                    continue;
+                }
+                update_post_meta($post_id, $key_name, $key_value);
+            }
+        }
+
+        // 画像アップロード処理（存在する場合のみ）
+        if (!empty($_FILES['thumbnail']) && !empty($_FILES['thumbnail']['tmp_name'])) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            require_once(ABSPATH . 'wp-admin/includes/media.php');
+            require_once(ABSPATH . 'wp-admin/includes/image.php');
+
+            $attachment_id = media_handle_upload('thumbnail', $post_id);
+
+            if (!is_wp_error($attachment_id)) {
+                set_post_thumbnail($post_id, $attachment_id); // アイキャッチとして登録
+            } else {
+                echo json_encode(['status' => 'error', 'message' => '画像アップロードに失敗しました']);
+                exit;
             }
         }
 
@@ -1528,6 +1573,7 @@ class endpoints
         if ($line_user_query->have_posts()) {
             $line_user_post_id = $line_user_query->posts[0]->ID;
             $name = get_post_meta($line_user_post_id, 'name', true);
+            $sex = get_post_meta($line_user_post_id, 'sex', true);
             $campany_name = get_post_meta($line_user_post_id, 'campany_name', true);
             $tel = get_post_meta($line_user_post_id, 'tel', true);
             $email = get_post_meta($line_user_post_id, 'email', true);
@@ -1537,6 +1583,8 @@ class endpoints
             $html .= '<dl class="lmf-info_list">' . PHP_EOL;
             $html .= '    <dt>名前</dt>' . PHP_EOL;
             $html .= '    <dd>' . $name . '</dd>' . PHP_EOL;
+            $html .= '    <dt>性別</dt>' . PHP_EOL;
+            $html .= '    <dd>' . $sex . '</dd>' . PHP_EOL;
             $html .= '    <dt>会社名</dt>' . PHP_EOL;
             $html .= '    <dd>' . $campany_name . '</dd>' . PHP_EOL;
             $html .= '    <dt>電話番号</dt>' . PHP_EOL;
@@ -1556,6 +1604,17 @@ class endpoints
 
     static function get_mypage($request)
     {
+        $member_type_options = [
+            '会長',
+            '事務局長',
+			'事務局次長',
+            '副会長',
+            '委員長',
+            '副委員長',
+			'顧問',
+            '幹事',
+            '本部役員',
+        ];
         $liff_id_event_schedule_history = get_option('liff_id_event_schedule_history');
         $liff_id_profile = get_option('liff_id_profile');
 
@@ -1591,6 +1650,8 @@ class endpoints
             // 3. line_user が存在すれば postID を取得
             $line_user_post_id = $line_user_query->posts[0]->ID;
             $name = get_post_meta($line_user_post_id, 'name', true);
+            $member_type_number = get_post_meta($line_user_post_id, 'member_type', true);
+            $message = get_post_meta($line_user_post_id, 'message',true);
             $terms = wp_get_post_terms($line_user_post_id, 'line_user_category');
             if (!empty($terms) && !is_wp_error($terms)) {
                 $line_user_category = $terms[0]->name;
@@ -1632,13 +1693,21 @@ class endpoints
                 }
             }
 
-
-
+            $thumbnail = get_the_post_thumbnail_url($line_user_post_id, 'full');
 
             // html生成
-            $html  = '<h2 class="name">' . $name . '</h2>' . PHP_EOL;
-            if (isset($line_user_category)):
-                $html .= '<div class="lmf-icon_box center"><span class="icon">' . $line_user_category . '</span></div>' . PHP_EOL;
+            $html = '';
+            if($thumbnail):
+                $html .= '<figure class="fig_box"><img src="'.$thumbnail.'" alt=""></figure>';
+            endif;
+            if($line_user_category){
+                $html .= '<div class="cate_box"><span class="text">'.$line_user_category.'</span></div>';
+            }
+            $html .= '<h2 class="name">' . $name . '</h2>' . PHP_EOL;
+            if ($member_type_number):
+                $member_type = $member_type_options[$member_type_number[0]];
+
+                $html .= '<div class="lmf-icon_box center"><span class="icon">' . $member_type. '</span></div>' . PHP_EOL;
             endif;
             $html .= '<dl class="lmf-attendance_list">' . PHP_EOL;
             $html .= '    <dt>例会チェックイン状況</dt>' . PHP_EOL;
@@ -1826,6 +1895,7 @@ class endpoints
             echo json_encode(['status' => 'error', 'message' => 'User ID is not found']);
             exit;
         }
+        $member_rank = get_post_meta($line_user_post_id, 'member_rank', true);
 
         // 申し込み済みかどうかチェック
         // entry_history から申し込まれたイベント ID を取得
@@ -1858,11 +1928,10 @@ class endpoints
             $entry_post_id = get_the_ID();
             // event_types を配列化＆HTMLリストに変換
             $event_types_raw = get_post_meta($entry_post_id, 'event_types', true);
-            
         }
 
         // 6. 成功メッセージを返す
-        echo json_encode(['entry_link_html' => $entry_link_html, 'entried_icon_html' => $entried_icon_html, 'event_types_raw' => $event_types_raw]);
+        echo json_encode(['entry_link_html' => $entry_link_html, 'entried_icon_html' => $entried_icon_html, 'event_types_raw' => $event_types_raw, 'member_rank' => $member_rank]);
     }
 
 
@@ -2461,7 +2530,7 @@ class endpoints
         $endpoint_functions = self::$endpoint_functions;
         foreach ($endpoint_functions as $function_name) {
             $postOrGet = 'GET';
-            if ($function_name == 'entry_request' || $function_name == 'event_checkin') {
+            if ($function_name == 'entry_request' || $function_name == 'event_checkin' || $function_name == 'update_line_user') {
                 $postOrGet = 'POST';
             }
             register_rest_route('wp/v2', '/' . $function_name, [
