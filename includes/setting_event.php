@@ -33,6 +33,7 @@ class settingEvent
         'checkin_event_types' => '参加集計用意項目', // テキスト
         'event_checkin' => 'イベントチェックインURL', // テキスト
         'event_stop_entry' => '受付終了', // チェックボックス
+        'event_all_users' => '全ての人が対象', // チェックボックス
     ];
 
     static $tag_fields = [
@@ -331,6 +332,18 @@ class settingEvent
         <?php
     }
 
+    static function render_field_event_all_users($post)
+    {
+        $value = get_post_meta($post->ID, 'event_all_users', true);
+?>
+        <fieldset>
+            <label>
+                <input type="checkbox" name="event_all_users" value="1" <?= $value == 1 ? 'checked' : ''; ?>>
+            </label>
+        </fieldset>
+        <?php
+    }
+
     /**
      * カスタムフィールド保存
      * @param mixed $post_ID
@@ -365,6 +378,11 @@ class settingEvent
                 // クイック編集などで未送信なら何もしない
                 continue;
             }
+        }
+
+        // チェックボックス（未送信時のクリア対応）
+        if (!isset($_POST['event_all_users'])) {
+            delete_post_meta($post_ID, 'event_all_users');
         }
     }
 

@@ -495,15 +495,50 @@ class endpoints
             ],
         ];
 
-        // "ゲスト" の場合は "例会" のみ取得
+        // ゲスト: check02 OR event_all_users=1（カテゴリ無関係）
         if ($member_rank === 'ゲスト') {
-            $event_query_args['tax_query'] = [
-                [
+            $ids_check02 = [];
+            $q1 = new WP_Query([
+                'post_type'      => 'event',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'post_status'    => 'publish',
+                'meta_query'     => $event_query_args['meta_query'],
+                'tax_query'      => [[
                     'taxonomy' => 'event_category',
                     'field'    => 'slug',
                     'terms'    => 'check02',
-                ],
+                ]],
+            ]);
+            if ($q1->have_posts()) { $ids_check02 = $q1->posts; }
+
+            $ids_all_users = [];
+            $meta_all = $event_query_args['meta_query'];
+            $meta_all[] = [
+                'key'     => 'event_all_users',
+                'value'   => '1',
+                'compare' => '=',
             ];
+            $q2 = new WP_Query([
+                'post_type'      => 'event',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'post_status'    => 'publish',
+                'meta_query'     => $meta_all,
+            ]);
+            if ($q2->have_posts()) { $ids_all_users = $q2->posts; }
+
+            $ids = array_values(array_unique(array_merge($ids_check02, $ids_all_users)));
+            if (!empty($ids)) {
+                if (isset($event_query_args['tax_query'])) unset($event_query_args['tax_query']);
+                $event_query_args['post__in'] = $ids;
+            } else {
+                $event_query_args['tax_query'] = [[
+                    'taxonomy' => 'event_category',
+                    'field'    => 'slug',
+                    'terms'    => 'check02',
+                ]];
+            }
         }
 
         if (!empty($applied_event_ids)) {
@@ -746,15 +781,63 @@ class endpoints
             ],
         ];
 
-        // "ゲスト" の場合は "例会" のみ取得
+        // "ゲスト" の場合: (check02) OR (event_all_users=1) を表示
+        $guest_all_users_ids = [];
         if ($member_rank === 'ゲスト') {
-            $event_query_args['tax_query'] = [
-                [
+            $base_meta_query = $event_query_args['meta_query'];
+            // check02 のイベントID
+            $check02_ids = [];
+            $q_check02 = new WP_Query([
+                'post_type'      => 'event',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'post_status'    => 'publish',
+                'meta_query'     => $base_meta_query,
+                'tax_query'      => [[
                     'taxonomy' => 'event_category',
                     'field'    => 'slug',
                     'terms'    => 'check02',
-                ],
+                ]],
+            ]);
+            if ($q_check02->have_posts()) {
+                $check02_ids = $q_check02->posts;
+            }
+            // 全員対象フラグのイベントID（カテゴリ問わず）
+            $all_users_ids = [];
+            $meta_all_users = $base_meta_query;
+            $meta_all_users[] = [
+                'key'     => 'event_all_users',
+                'value'   => '1',
+                'compare' => '=',
             ];
+            $q_all_users = new WP_Query([
+                'post_type'      => 'event',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'post_status'    => 'publish',
+                'meta_query'     => $meta_all_users,
+            ]);
+            if ($q_all_users->have_posts()) {
+                $all_users_ids = $q_all_users->posts;
+            }
+
+            $guest_ids = array_values(array_unique(array_merge($check02_ids, $all_users_ids)));
+            if (!empty($guest_ids)) {
+                // OR 条件をpost__inで表現し、カテゴリ制限は外す
+                if (isset($event_query_args['tax_query'])) {
+                    unset($event_query_args['tax_query']);
+                }
+                $event_query_args['post__in'] = $guest_ids;
+            } else {
+                // 何もなければ check02 のみ
+                $event_query_args['tax_query'] = [[
+                    'taxonomy' => 'event_category',
+                    'field'    => 'slug',
+                    'terms'    => 'check02',
+                ]];
+            }
+            // 次のタブ用に保持（カテゴリ別のときに必要なら intersect で利用）
+            $guest_all_users_ids = $all_users_ids;
         }
 
 
@@ -1008,15 +1091,49 @@ class endpoints
                 ],
             ],
         ];
-        // "ゲスト" の場合は "例会" のみ取得
+        // ゲスト: check02 OR event_all_users=1（カテゴリ無関係）
         if ($member_rank === 'ゲスト') {
-            $event_query_args['tax_query'] = [
-                [
+            $ids_check02 = [];
+            $q1 = new WP_Query([
+                'post_type'      => 'event',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'post_status'    => 'publish',
+                'meta_query'     => $event_query_args['meta_query'],
+                'tax_query'      => [[
                     'taxonomy' => 'event_category',
                     'field'    => 'slug',
                     'terms'    => 'check02',
-                ],
+                ]],
+            ]);
+            if ($q1->have_posts()) { $ids_check02 = $q1->posts; }
+
+            $ids_all_users = [];
+            $meta_all = $event_query_args['meta_query'];
+            $meta_all[] = [
+                'key'     => 'event_all_users',
+                'value'   => '1',
+                'compare' => '=',
             ];
+            $q2 = new WP_Query([
+                'post_type'      => 'event',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'post_status'    => 'publish',
+                'meta_query'     => $meta_all,
+            ]);
+            if ($q2->have_posts()) { $ids_all_users = $q2->posts; }
+
+            $ids = array_values(array_unique(array_merge($ids_check02, $ids_all_users)));
+            if (!empty($ids)) {
+                $event_query_args['post__in'] = $ids;
+            } else {
+                $event_query_args['tax_query'] = [[
+                    'taxonomy' => 'event_category',
+                    'field'    => 'slug',
+                    'terms'    => 'check02',
+                ]];
+            }
         }
 
         $event_query = new WP_Query($event_query_args);
@@ -1139,20 +1256,75 @@ class endpoints
 
         // カテゴリーごと
         foreach ($categories as $category) {
-            $event_query_args['tax_query'] = [
-                [
+            // タブごとの表示
+            // カテゴリに属するID
+            $ids_cat = [];
+            $q_cat = new WP_Query([
+                'post_type'      => 'event',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'post_status'    => 'publish',
+                'meta_query'     => $event_query_args['meta_query'],
+                'tax_query'      => [[
                     'taxonomy' => 'event_category',
                     'field'    => 'slug',
                     'terms'    => $category->slug,
-                ],
+                ]],
+            ]);
+            if ($q_cat->have_posts()) { $ids_cat = $q_cat->posts; }
+
+            // 全員対象ID（カテゴリ無関係）
+            $ids_all = [];
+            $meta_all_tab = $event_query_args['meta_query'];
+            $meta_all_tab[] = [
+                'key'     => 'event_all_users',
+                'value'   => '1',
+                'compare' => '=',
             ];
+            $q_all = new WP_Query([
+                'post_type'      => 'event',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'post_status'    => 'publish',
+                'meta_query'     => $meta_all_tab,
+            ]);
+            if ($q_all->have_posts()) { $ids_all = $q_all->posts; }
+
+            if ($member_rank === 'ゲスト') {
+                if ($category->slug === 'check02') {
+                    // 例会タブはカテゴリの全件
+                    if (!empty($ids_cat)) {
+                        unset($event_query_args['tax_query']);
+                        $event_query_args['post__in'] = $ids_cat;
+                    } else {
+                        // 該当なし
+                        $event_query_args['post__in'] = [0];
+                    }
+                } else {
+                    // それ以外のタブは カテゴリに属し かつ 全員対象 のみ（AND = intersection）
+                    $ids_tab = array_values(array_intersect($ids_cat, $ids_all));
+                    if (!empty($ids_tab)) {
+                        unset($event_query_args['tax_query']);
+                        $event_query_args['post__in'] = $ids_tab;
+                    } else {
+                        $event_query_args['post__in'] = [0];
+                    }
+                }
+            } else {
+                // 非ゲストは通常通りカテゴリで絞る
+                $event_query_args['tax_query'] = [[
+                    'taxonomy' => 'event_category',
+                    'field'    => 'slug',
+                    'terms'    => $category->slug,
+                ]];
+                if (isset($event_query_args['post__in'])) unset($event_query_args['post__in']);
+            }
             $previous_month = null;
             $current_month = null;
             $event_query = new WP_Query($event_query_args);
             $html .= '<section class="section">';
             $html .= '<ul class="lmf-card_list">';
-
-            if ($member_rank != 'ゲスト' || ($member_rank == 'ゲスト' && $category->slug == 'check02')) {
+            if ($member_rank != 'ゲスト' || ($member_rank == 'ゲスト' && ($category->slug == 'check02' || $category->slug == 'check03'))) {
                 while ($event_query->have_posts()) {
                     $event_query->the_post();
                     $event_id = get_the_ID();
