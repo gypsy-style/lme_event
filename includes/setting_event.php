@@ -30,12 +30,13 @@ class settingEvent
         'speaker_name' => '講師名', // テキスト
         'speaker_profile' => '講師プロフィール', // テキストエリア
         'event_types_name' => 'イベント名', // テキスト
+        'event_types_attention' => 'イベントの注意事項', // テキスト 
         'event_types' => 'イベントタイプ', // テキスト
         'checkin_event_types' => '参加集計用意項目', // テキスト
-        'event_type1_name' => 'イベント名1', // テキスト 
-        'event_type1_attention' => 'イベント名1の注意事項', // テキスト 
-        'event_type1_answers' => 'イベント1の回答（カンマ区切り）', // テキスト　
-        'checkin_event_type1' => '参加集計用項目1', // テキスト
+        // 'event_type1_name' => 'イベント名1', // テキスト 
+        // 'event_type1_attention' => 'イベント名1の注意事項', // テキスト 
+        // 'event_type1_answers' => 'イベント1の回答（カンマ区切り）', // テキスト　
+        // 'checkin_event_type1' => '参加集計用項目1', // テキスト
         'event_type2_name' => 'イベント名2', // テキスト
         'event_type2_attention' => 'イベント名2の注意事項', // テキスト
         'event_type2_answers' => 'イベント2の回答（カンマ区切り）', // テキスト
@@ -314,6 +315,14 @@ class settingEvent
         $value = get_post_meta($post->ID, 'event_types_name', true);
     ?>
         <input type="text" id="event_types_name" name="event_types_name" class="large-text" placeholder="例会" value="<?= esc_attr($value); ?>">
+    <?php
+    }
+
+    static function render_field_event_types_attention($post)
+    {
+        $value = get_post_meta($post->ID, 'event_types_attention', true);
+    ?>
+        <input type="text" id="event_types_attention" name="event_types_attention" class="large-text" placeholder="注意事項" value="<?= esc_attr($value); ?>">
     <?php
     }
 
