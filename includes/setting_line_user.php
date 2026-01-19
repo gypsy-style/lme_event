@@ -145,6 +145,7 @@ class settingLineUser
             '正会員',
             '理事',
             '管理者',
+            '退会',
         ];
         $post_id = $post->ID;
         $value = get_post_meta($post_id, $item_name, true);
