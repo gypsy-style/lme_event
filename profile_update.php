@@ -152,7 +152,7 @@ $email = get_post_meta($line_user_post_id, 'email', true);
 <body class="lmf-point_body cust">
     <div class="lmf-container">
         <div class="lmf-title_block">
-            <h1 class="title">会員登録</h1>
+            <h1 class="title">登録情報修正</h1>
         </div>
 
         <main class="lmf-main_contents">

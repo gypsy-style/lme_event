@@ -104,7 +104,7 @@ if ($event_post && $event_post->post_type === 'event') {
 		foreach ($event_types_array as $type) {
 			$type = trim($type); // 不要な空白を削除
 			if (!empty($type)) {
-				$formatted_event_checkbox .= '<label><input type="checkbox" name="event_types[]" value="' . esc_html($type) . '">' . esc_html($type) . '</label>';
+				$formatted_event_checkbox .= '<label><input type="radio" name="event_types" value="' . esc_attr($type) . '">' . esc_html($type) . '</label>';
 			}
 		}
 	}
@@ -190,11 +190,11 @@ if ($event_post && $event_post->post_type === 'event') {
 					liff.login({
 						redirectUri: window.location.origin + window.location.pathname + '?event_id=' + eventId
 					});
-				}else {
+				} else {
 					getProfile();
 				}
-				
-				
+
+
 			}).catch(err => {
 				console.error("LIFF初期化エラー:", err);
 			});
@@ -223,15 +223,15 @@ if ($event_post && $event_post->post_type === 'event') {
 					const member_rank = response.member_rank;
 					$('#entry_link').html(entry_link_html);
 					$('#entried_icon').html(entried_icon_html);
-					if(member_rank == "理事") {
+					if (member_rank == "理事") {
 						$('#checkAttendance').show();
 					}
-					
-					if(event_types_raw) {
+
+					if (event_types_raw) {
 						$('#event_types_raw').show();
 						$('#event_types_raw .text').text(event_types_raw);
 					}
-					
+
 
 				}).fail(function(XMLHttpRequest, textStatus, errorThrown) {
 					alert(errorThrown);
@@ -252,12 +252,15 @@ if ($event_post && $event_post->post_type === 'event') {
 			<section class="lmf-content">
 				<ul class="lmf-pnavi_list clearfix">
 					<li class="back"><a href="event_list.php">一覧へ戻る</a></li>
-					<li class="lmf-link_box triangle" id="checkAttendance" style="display:none;"><a href="https://lme-event.net/mosaka-vtu28U6Y/event-join-all?event_id=<?=$event_id;?>">出欠・チェックイン確認</a></li>
+					<li class="lmf-link_box triangle" id="checkAttendance" style="display:none;"><a href="https://lme-event.net/mosaka-vtu28U6Y/event-join-all?event_id=<?= $event_id; ?>">出欠・チェックイン確認</a></li>
 				</ul>
-				<div class="lmf-single_block schedule lmf-white_block">
+				<div class="lmf-single_block schedule lmf-white_block" 
+				style="padding-left: 0;
+				padding-right: 0;
+				padding-top: 0;">
 					<div id="entried_icon"></div>
 
-					<div class="lmf-icon_box"><?= $formatted_tag_icon; ?></div>
+					<div class="lmf-icon_box" style="margin-bottom: 0;"><?= $formatted_tag_icon; ?></div>
 					<?php
 					if ($thumbnail_url): ?>
 						<img src="<?= $thumbnail_url; ?>" alt="">
@@ -270,65 +273,75 @@ if ($event_post && $event_post->post_type === 'event') {
 						<img src="<?= esc_url($image_url); ?>" alt="イベント画像">
 					<?php
 					endif; ?>
-					<h2><?= $title; ?></h2>
-					<div class="lmf-fuki_box" id="event_types_raw" style="display:none;"><p class="text"></p></div>
-					<h3><?= esc_html($event_subtitle); ?></h3>
-					<?= $event_content; ?>
-					<dl class="lmf-info_list--v">
-						<?php
-						if (!empty($formatted_date)): ?>
-							<dt>開催日時</dt>
-							<dd>
-								<?= esc_html($formatted_date); ?><br>
-								<?= nl2br(esc_html($event_time)); ?>
-							</dd>
-						<?php
-						endif; ?>
-						<?php
-						if (!empty($event_venue)): ?>
-							<dt>会場</dt>
-							<dd>
-								<?= esc_html($event_venue); ?><br>
-								<?= esc_html($event_address); ?>
-								<?php
-								if (!empty($event_map)): ?>
-									<br><a href="<?= esc_html($event_map); ?>">Google MAP</a>
-								<?php
-								endif; ?>
-							</dd>
-						<?php
-						endif; ?>
-						<?php
-						if (!empty($entry_fee)): ?>
-							<dt>参加費</dt>
-							<dd><?= esc_html($entry_fee); ?></dd>
-						<?php
-						endif; ?>
-						<?php
-						if (!empty($speaker_name)): ?>
-							<dt>講師</dt>
-							<dd>
-								<?= esc_html($speaker_name); ?><br>
-								<?= esc_html($speaker_profile); ?>
-							</dd>
-						<?php
-						endif; ?>
-						<?php
-						if (!empty($event_committee)): ?>
-							<dt>担当委員会</dt>
-							<dd>
-								<?= esc_html($event_committee); ?><br>
-								<?= esc_html($event_chairperson); ?><br>
-								<?= esc_html($contact_phone); ?>
-							</dd>
-						<?php
-						endif; ?>
-					</dl>
+					<div style="padding:var(--gap-m);">
 					<?php
-					if($event_types):?>
-					<div id="entry_link"></div>
-					<?php
-					endif;?>
+							if (!empty($formatted_date)): ?>
+						<p class="text"><?= $formatted_date; ?></p>
+						<?php
+						endif; ?>
+						<h2><?= $title; ?></h2>
+						<div class="lmf-fuki_box" id="event_types_raw" style="display:none;">
+							<p class="text"></p>
+						</div>
+						<h3><?= esc_html($event_subtitle); ?></h3>
+						<?= $event_content; ?>
+						<dl class="lmf-info_list--v">
+							<?php
+							if (!empty($formatted_date)): ?>
+								<dt>開催日時</dt>
+								<dd>
+									<?= esc_html($formatted_date); ?><br>
+									<?= nl2br(esc_html($event_time)); ?>
+								</dd>
+							<?php
+							endif; ?>
+							<?php
+							if (!empty($event_venue)): ?>
+								<dt>会場</dt>
+								<dd>
+									<?= esc_html($event_venue); ?><br>
+									<?= esc_html($event_address); ?>
+									<?php
+									if (!empty($event_map)): ?>
+										<br><a href="<?= esc_html($event_map); ?>">Google MAP</a>
+									<?php
+									endif; ?>
+								</dd>
+							<?php
+							endif; ?>
+							<?php
+							if (!empty($entry_fee)): ?>
+								<dt>参加費</dt>
+								<dd><?= esc_html($entry_fee); ?></dd>
+							<?php
+							endif; ?>
+							<?php
+							if (!empty($speaker_name)): ?>
+								<dt>講師</dt>
+								<dd>
+									<?= esc_html($speaker_name); ?><br>
+									<?= esc_html($speaker_profile); ?>
+								</dd>
+							<?php
+							endif; ?>
+							<?php
+							if (!empty($event_committee)): ?>
+								<dt>担当委員会</dt>
+								<dd>
+									<?= esc_html($event_committee); ?><br>
+									<?= esc_html($event_chairperson); ?><br>
+									<?= esc_html($contact_phone); ?>
+								</dd>
+							<?php
+							endif; ?>
+						</dl>
+						<?php
+						if ($event_types): ?>
+							<div id="entry_link"></div>
+						<?php
+						endif; ?>
+					</div>
+
 				</div>
 				<ul class="lmf-pnavi_list clearfix">
 					<li class="back"><a href="event_list.php">一覧へ戻る</a></li>

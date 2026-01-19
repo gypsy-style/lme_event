@@ -40,8 +40,8 @@ $formatted_tag_icon = '';
 $formatted_event_checkbox = '';
 $event_types_array = [];
 $event_id = isset($_GET['event_id']) ? $_GET['event_id'] : 0;
-$user_id = isset($_GET['user_id']) ? $_GET['user_id'] : 0;
 $event_schedule_link = '';
+$event_stop_entry = '';
 
 // 投稿データの取得
 $event_post = get_post($event_id);
@@ -86,12 +86,21 @@ if ($event_post && $event_post->post_type === 'event') {
 	$contact_phone = !empty(get_post_meta($event_id, 'contact_phone', true)) ? get_post_meta($event_id, 'contact_phone', true) : '';
 	$entry_fee = get_post_meta($event_id, 'entry_fee', true);
 	$event_types = get_post_meta($event_id, 'event_types', true);
+	$event_types_name = get_post_meta($event_id, 'event_types_name', true);
+	$event_type1_name = get_post_meta($event_id, 'event_type1_name', true);
+	$event_type1_answers = get_post_meta($event_id, 'event_type1_answers', true);
+	$event_type2_name = get_post_meta($event_id, 'event_type2_name', true);
+	$event_type2_answers = get_post_meta($event_id, 'event_type2_answers', true);
+	$event_type3_name = get_post_meta($event_id, 'event_type3_name', true);
+	$event_type3_answers = get_post_meta($event_id, 'event_type3_answers', true);
+	$event_type4_name = get_post_meta($event_id, 'event_type4_name', true);
+	$event_type4_answers = get_post_meta($event_id, 'event_type4_answers', true);
 	$event_stop_entry = get_post_meta($event_id, 'event_stop_entry', true);
 	$weekdays = get_weekdays();
 
 	// scheduleへのリンク
 	$liff_id_event_schedule = get_option('liff_id_event_schedule');
-	$event_schedule_link = 'https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id . '&user_id=' . $user_id;
+	$event_schedule_link = 'https://liff.line.me/' . $liff_id_event_schedule . '?event_id=' . $event_id;
 
 	if (!empty($event_date)) {
 		$date = new DateTime($event_date);
@@ -111,10 +120,26 @@ if ($event_post && $event_post->post_type === 'event') {
 			$type = trim($type); // 不要な空白を削除
 			if (!empty($type)) {
 				$formatted_event_icon .= '<span class="icon">' . esc_html($type) . '</span>';
-				$formatted_event_checkbox .= '<label><input type="checkbox" name="event_types[]" value="' . esc_html($type) . '">' . esc_html($type) . '</label>';
 			}
 		}
 	}
+	function get_event_types_radio($event_types = '', $name = 'event_types') {
+		$formatted_event_checkbox = '';
+		if (!empty($event_types)) {
+			$event_types_array = explode(",", $event_types); // 改行で分割
+			foreach ($event_types_array as $type) {
+				$type = trim($type); // 不要な空白を削除
+				if (!empty($type)) {
+					$formatted_event_checkbox .= '<label><input type="radio" name="' . esc_attr($name) . '" value="' . esc_attr($type) . '">' . esc_html($type) . '</label>';
+				}
+			}
+		}
+		return $formatted_event_checkbox;
+	}
+	$formatted_event_checkbox = get_event_types_radio($event_types, 'event_types');
+	$formatted_event_checkbox2 = get_event_types_radio($event_type2_answers, 'event_type2_answers');
+	$formatted_event_checkbox3 = get_event_types_radio($event_type3_answers, 'event_type3_answers');
+	$formatted_event_checkbox4 = get_event_types_radio($event_type4_answers, 'event_type4_answers');
 	$tags = get_the_terms($event_id, 'event_tag');
 
 	// タグが存在する場合に処理を実行
@@ -176,13 +201,17 @@ if ($event_post && $event_post->post_type === 'event') {
 					form.addEventListener('submit', function(e) {
 						e.preventDefault(); // デフォルトのフォーム送信をキャンセル
 
-						// チェックボックスで選択されたイベントタイプを取得
-						const selectedEventTypes = Array.from(document.querySelectorAll('input[name="event_types[]"]:checked')).map(input => input.value);
-
-						if (selectedEventTypes.length === 0) {
-							alert('参加するイベントを選択してください。');
-							return;
-						}
+						// 各設問ごとにradioの選択値を取得（未選択OK）
+						// endpoints.php 側で event_types / event_type2_answers ... を別metaで保存するため、個別キーも送る
+						const groupNames = ['event_types', 'event_type2_answers', 'event_type3_answers', 'event_type4_answers'];
+						const selectedEventTypes = [];
+						const selectedByGroup = {};
+						groupNames.forEach((name) => {
+							const el = document.querySelector('input[name="' + name + '"]:checked');
+							const v = (el && el.value) ? el.value : '';
+							selectedByGroup[name] = v;
+							if (v) selectedEventTypes.push(v);
+						});
 
 
 						const comment = document.querySelector('textarea[name="comment"]').value;
@@ -191,7 +220,13 @@ if ($event_post && $event_post->post_type === 'event') {
 						const postData = {
 							event_id: eventId,
 							access_token: accessToken,
-							event_types: selectedEventTypes,
+							// 各設問の選択値（未選択なら空）
+							event_types: selectedByGroup['event_types'],
+							event_type2_answers: selectedByGroup['event_type2_answers'],
+							event_type3_answers: selectedByGroup['event_type3_answers'],
+							event_type4_answers: selectedByGroup['event_type4_answers'],
+							// 参考用: 選択肢の配列（0〜4件）
+							event_types_selected: selectedEventTypes,
 							comment: comment,
 							_wpnonce: "<?= wp_create_nonce('wp_rest'); ?>" // CSRFトークンを送信
 						};
@@ -246,21 +281,36 @@ if ($event_post && $event_post->post_type === 'event') {
 						<input type="hidden" name="access_token" id="accessToken">
 						<dl class="lmf-form_box">
 
-							<dt>参加するイベントを選択してください。</dt>
-							<dd class="left">
-								<?= $formatted_event_checkbox; ?>
-							</dd>
+							<!-- <dt>参加するイベントを選択してください。</dt> -->
+								<dt><?= isset($event_types_name) ? $event_types_name : ''; ?></dt>
+								<dd class="left">
+									<?= isset($formatted_event_checkbox) ? $formatted_event_checkbox : ''; ?>
+								</dd>
+							<?php if(isset($formatted_event_checkbox2) && !empty($formatted_event_checkbox2)): ?>
+								<dt><?= isset($event_type2_name) ? $event_type2_name : ''; ?></dt>
+								<dd class="left">
+									<?= $formatted_event_checkbox2; ?>
+								</dd>
+							<?php endif; ?>
+
+							<?php if(isset($formatted_event_checkbox3) && !empty($formatted_event_checkbox3)): ?>
+								<dt><?= isset($event_type3_name) ? $event_type3_name : ''; ?></dt>
+								<dd class="left">
+									<?= $formatted_event_checkbox3; ?>
+								</dd>
+							<?php endif; ?>
+							<?php if(isset($formatted_event_checkbox4) && !empty($formatted_event_checkbox4)): ?>
+								<dt><?= isset($event_type4_name) ? $event_type4_name : ''; ?></dt>
+								<dd class="left">
+									<?= $formatted_event_checkbox4; ?>
+								</dd>
+							<?php endif; ?>
 							<dt>メッセージ</dt>
 							<dd><textarea name="comment" rows="4"></textarea></dd>
 						</dl>
 						<p class="lmf-btn_box"><button type="submit">申し込む</button></p>
 					</form>
-					<?php
-					else:
-						?>
-						<p>受付は終了しました</p>
-						<?php
-					endif;?>
+					<?php endif; ?>
 				</div>
 				<ul class="lmf-pnavi_list clearfix">
 					<li class="back"><a href="event_entry_list.php">一覧へ戻る</a></li>

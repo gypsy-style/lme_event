@@ -1376,8 +1376,17 @@ class endpoints
                         if ($entry_query->have_posts()) {
                             $entry_query->the_post();
                             $entry_post_id = get_the_ID();
-                            // event_types を配列化＆HTMLリストに変換
-                            $event_types_raw = get_post_meta($entry_post_id, 'event_types', true);
+                            // event_types_raw: 設問ごとの選択値をカンマで連結して返す
+                            $selected = [];
+                            $v1 = get_post_meta($entry_post_id, 'event_types', true);
+                            $v2 = get_post_meta($entry_post_id, 'event_type2_answers', true);
+                            $v3 = get_post_meta($entry_post_id, 'event_type3_answers', true);
+                            $v4 = get_post_meta($entry_post_id, 'event_type4_answers', true);
+                            foreach ([$v1, $v2, $v3, $v4] as $v) {
+                                $v = is_string($v) ? trim($v) : '';
+                                if ($v !== '') $selected[] = $v;
+                            }
+                            $event_types_raw = implode(',', $selected);
                             // 吹き出しのhtml
                         }
                         wp_reset_postdata();
@@ -1487,7 +1496,11 @@ class endpoints
 
         $event_id = $request->get_param('event_id');
         $accessToken = $request->get_param('access_token');
-        $event_types = implode(',', $request->get_param('event_types'));
+        // 設問ごとに別で保存する（未選択/未送信OK）
+        $event_types = is_string($request->get_param('event_types')) ? trim((string)$request->get_param('event_types')) : '';
+        $event_type2_answers = is_string($request->get_param('event_type2_answers')) ? trim((string)$request->get_param('event_type2_answers')) : '';
+        $event_type3_answers = is_string($request->get_param('event_type3_answers')) ? trim((string)$request->get_param('event_type3_answers')) : '';
+        $event_type4_answers = is_string($request->get_param('event_type4_answers')) ? trim((string)$request->get_param('event_type4_answers')) : '';
         $comment = $request->get_param('comment');
 
         // アクセストークンが存在しない場合は終了
@@ -1535,6 +1548,9 @@ class endpoints
         update_post_meta($entry_post_id, 'user_id', $line_user_post_id);
         update_post_meta($entry_post_id, 'event_id', $event_id);
         update_post_meta($entry_post_id, 'event_types', $event_types);
+        update_post_meta($entry_post_id, 'event_type2_answers', $event_type2_answers);
+        update_post_meta($entry_post_id, 'event_type3_answers', $event_type3_answers);
+        update_post_meta($entry_post_id, 'event_type4_answers', $event_type4_answers);
         update_post_meta($entry_post_id, 'comment', $comment);
 
         // 6. 成功メッセージを返す
@@ -2113,8 +2129,17 @@ class endpoints
             $entried_icon_html = '<div class="lmf-status_box"><span class="icon already">申込済み</span></div>';
             $entry_history_query->the_post();
             $entry_post_id = get_the_ID();
-            // event_types を配列化＆HTMLリストに変換
-            $event_types_raw = get_post_meta($entry_post_id, 'event_types', true);
+            // event_types_raw: 設問ごとの選択値をカンマで連結して返す
+            $selected = [];
+            $v1 = get_post_meta($entry_post_id, 'event_types', true);
+            $v2 = get_post_meta($entry_post_id, 'event_type2_answers', true);
+            $v3 = get_post_meta($entry_post_id, 'event_type3_answers', true);
+            $v4 = get_post_meta($entry_post_id, 'event_type4_answers', true);
+            foreach ([$v1, $v2, $v3, $v4] as $v) {
+                $v = is_string($v) ? trim($v) : '';
+                if ($v !== '') $selected[] = $v;
+            }
+            $event_types_raw = implode(',', $selected);
         }
 
         // 6. 成功メッセージを返す

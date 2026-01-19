@@ -16,6 +16,9 @@ class settingEntryHistory {
         'user_id'=>'ユーザーID',
         'event_id'=>'イベントID',
         'event_types'=>'参加タイプ',
+        'event_type2_answers'=>'参加タイプ2',
+        'event_type3_answers'=>'参加タイプ3',
+        'event_type4_answers'=>'参加タイプ4',
         'comment'=>'メッセージ',
     ];
 
@@ -96,6 +99,21 @@ class settingEntryHistory {
     }
 
     /**
+     * 店舗ID
+     * @param mixed $post 
+     * @return void 
+     */
+    static function show_event_id($post)
+    {
+        $post_id = $post->ID;
+        $value = get_post_meta($post_id,'event_id',true);
+        ?>
+        <label for="event_id">イベント ID</label>
+        <input type="text" id="event_id" name="event_id" value="<?=$value;?>">
+        <?php
+    }
+
+    /**
      * エラー日時のカスタムフィールド
      * @param mixed $post 
      * @return void 
@@ -110,19 +128,46 @@ class settingEntryHistory {
         <?php
     }
 
-
     /**
-     * 店舗ID
+     * 参加タイプ2の回答のカスタムフィールド
      * @param mixed $post 
      * @return void 
      */
-    static function show_event_id($post)
+    static function show_event_type2_answers($post)
     {
         $post_id = $post->ID;
-        $value = get_post_meta($post_id,'event_id',true);
+        $value = get_post_meta($post_id,'event_type2_answers',true);
         ?>
-        <label for="event_id">イベント ID</label>
-        <input type="text" id="event_id" name="event_id" value="<?=$value;?>">
+        <label for="event_type2_answers">参加タイプ2の回答</label>
+        <input type="text" id="event_type2_answers" name="event_type2_answers" value="<?=$value;?>">
+        <?php
+    }
+    /**
+     * 参加タイプ3の回答のカスタムフィールド
+     * @param mixed $post 
+     * @return void 
+     */
+    static function show_event_type3_answers($post)
+    {
+        $post_id = $post->ID;
+        $value = get_post_meta($post_id,'event_type3_answers',true);
+        ?>
+        <label for="event_type3_answers">参加タイプ3の回答</label>
+        <input type="text" id="event_type3_answers" name="event_type3_answers" value="<?=$value;?>">
+        <?php
+    }
+    /**
+     * 参加タイプ4の回答のカスタムフィールド
+     * @param mixed $post 
+     * @return void 
+     */
+    static function show_event_type4_answers($post)
+    {
+        $post_id = $post->ID;
+        $value = get_post_meta($post_id,'event_type4_answers',true);
+        ?>
+        <label for="event_type4_answers">参加タイプ4の回答</label>
+        <input type="text" id="event_type4_answers" name="event_type4_answers" value="<?=$value;?>">
         <?php
     }
 

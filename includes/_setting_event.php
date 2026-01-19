@@ -29,29 +29,11 @@ class settingEvent
         'entry_fee' => '参加費', // テキスト
         'speaker_name' => '講師名', // テキスト
         'speaker_profile' => '講師プロフィール', // テキストエリア
-        'event_types_name' => 'イベント名', // テキスト
         'event_types' => 'イベントタイプ', // テキスト
         'checkin_event_types' => '参加集計用意項目', // テキスト
-        'event_type1_name' => 'イベント名1', // テキスト 
-        'event_type1_attention' => 'イベント名1の注意事項', // テキスト 
-        'event_type1_answers' => 'イベント1の回答（カンマ区切り）', // テキスト　
-        'checkin_event_type1' => '参加集計用項目1', // テキスト
-        'event_type2_name' => 'イベント名2', // テキスト
-        'event_type2_attention' => 'イベント名2の注意事項', // テキスト
-        'event_type2_answers' => 'イベント2の回答（カンマ区切り）', // テキスト
-        'checkin_event_type2' => '参加集計用項目2', // テキスト
-        'event_type3_name' => 'イベント名3', // テキスト
-        'event_type3_attention' => 'イベント名3の注意事項', // テキスト
-        'event_type3_answers' => 'イベント3の回答（カンマ区切り）', // テキスト
-        'checkin_event_type3' => '参加集計用項目3', // テキスト
-        'event_type4_name' => 'イベント名4', // テキスト
-        'event_type4_attention' => 'イベント名4の注意事項', // テキスト
-        'event_type4_answers' => 'イベント4の回答（カンマ区切り）', // テキスト
-        'checkin_event_type4' => '参加集計用項目4', // テキスト
         'event_checkin' => 'イベントチェックインURL', // テキスト
         'event_stop_entry' => '受付終了', // チェックボックス
         'event_all_users' => '全ての人が対象', // チェックボックス
-        
     ];
 
     static $tag_fields = [
@@ -309,150 +291,12 @@ class settingEvent
     <?php
     }
 
-    static function render_field_event_types_name($post)
-    {
-        $value = get_post_meta($post->ID, 'event_types_name', true);
-    ?>
-        <input type="text" id="event_types_name" name="event_types_name" class="large-text" placeholder="例会" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
     static function render_field_event_types($post)
     {
         $value = get_post_meta($post->ID, 'event_types', true);
     ?>
         <p>カンマ区切り</p>
         <input type="text" id="event_types" name="event_types" class="large-text" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type1_name($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type1_name', true);
-    ?>
-        <input type="text" id="event_type1_name" name="event_type1_name" class="large-text" placeholder="例会" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type1_attention($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type1_attention', true);
-    ?>
-        <input type="text" id="event_type1_attention" name="event_type1_attention" class="large-text" placeholder="注意事項" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type1_answers($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type1_answers', true);
-    ?>
-        <input type="text" id="event_type1_answers" name="event_type1_answers" class="large-text" placeholder="参加する,参加しない,未定" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_checkin_event_type1($post)
-    {
-        $value = get_post_meta($post->ID, 'checkin_event_type1', true);
-    ?>
-        <input type="text" id="checkin_event_type1" name="checkin_event_type1" class="large-text" placeholder="参加する,参加しない,未定" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    
-
-    static function render_field_event_type2_name($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type2_name', true);
-    ?>
-        <input type="text" id="event_type2_name" name="event_type2_name" class="large-text" placeholder="例会" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type2_attention($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type2_attention', true);
-    ?>
-        <input type="text" id="event_type2_attention" name="event_type2_attention" class="large-text" placeholder="注意事項" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type2_answers($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type2_answers', true);
-    ?>
-        <input type="text" id="event_type2_answers" name="event_type2_answers" class="large-text" placeholder="参加する,参加しない,未定" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_checkin_event_type2($post)
-    {
-        $value = get_post_meta($post->ID, 'checkin_event_type2', true);
-    ?>
-        <input type="text" id="checkin_event_type2" name="checkin_event_type2" class="large-text" placeholder="参加する,参加しない,未定" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type3_name($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type3_name', true);
-    ?>
-        <input type="text" id="event_type3_name" name="event_type3_name" class="large-text" placeholder="例会" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type3_attention($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type3_attention', true);
-    ?>
-        <input type="text" id="event_type3_attention" name="event_type3_attention" class="large-text" placeholder="注意事項" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type3_answers($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type3_answers', true);
-    ?>
-        <input type="text" id="event_type3_answers" name="event_type3_answers" class="large-text" placeholder="参加する,参加しない,未定" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_checkin_event_type3($post)
-    {
-        $value = get_post_meta($post->ID, 'checkin_event_type3', true);
-    ?>
-        <input type="text" id="checkin_event_type3" name="checkin_event_type3" class="large-text" placeholder="参加する,参加しない,未定" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type4_name($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type4_name', true);
-    ?>
-        <input type="text" id="event_type4_name" name="event_type4_name" class="large-text" placeholder="例会" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type4_attention($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type4_attention', true);
-    ?>
-        <input type="text" id="event_type4_attention" name="event_type4_attention" class="large-text" placeholder="注意事項" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_event_type4_answers($post)
-    {
-        $value = get_post_meta($post->ID, 'event_type4_answers', true);
-    ?>
-        <input type="text" id="event_type4_answers" name="event_type4_answers" class="large-text" placeholder="参加する,参加しない,未定" value="<?= esc_attr($value); ?>">
-    <?php
-    }
-
-    static function render_field_checkin_event_type4($post)
-    {
-        $value = get_post_meta($post->ID, 'checkin_event_type4', true);
-    ?>
-        <input type="text" id="checkin_event_type4" name="checkin_event_type4" class="large-text" placeholder="参加する,参加しない,未定" value="<?= esc_attr($value); ?>">
     <?php
     }
 
@@ -518,13 +362,7 @@ class settingEvent
                     // event_checkinはデータ更新なし
                     continue;
                 } elseif ($key === 'event_image') {
-                    // 画像IDが空/0の場合は削除扱いにする（削除ボタン押下→更新に対応）
-                    $raw = isset($_POST[$key]) ? trim((string)$_POST[$key]) : '';
-                    if ($raw === '' || intval($raw) === 0) {
-                        delete_post_meta($post_ID, $key);
-                    } else {
-                        update_post_meta($post_ID, $key, intval($raw)); // 画像IDは整数として保存
-                    }
+                    update_post_meta($post_ID, $key, intval($_POST[$key])); // 画像IDは整数として保存
                 } else {
                     if ($key === 'event_time') {
                         // テキストエリア用のサニタイズ

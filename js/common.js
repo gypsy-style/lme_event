@@ -36,7 +36,8 @@ jQuery(function($){
 
     $('#remove_event_image').on('click', function (e) {
         e.preventDefault();
-        $('#event_image').val('');
+        // hiddenフィールド(event_image)を空にして削除扱いにする
+        $('#event_image_hidden').val('');
         $('#event_image_preview').html('');
         $(this).hide();
     });
