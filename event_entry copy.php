@@ -282,7 +282,7 @@ if ($event_post && $event_post->post_type === 'event') {
 						<dl class="lmf-form_box">
 
 							<!-- <dt>参加するイベントを選択してください。</dt> -->
-								<dt><?= isset($event_types_name) ? $event_types_name : ''; ?></dt>
+							<dt><?= isset($event_types_name) ? $event_types_name : ''; ?></dt>
 								<dd class="left">
 									<?= isset($formatted_event_checkbox) ? $formatted_event_checkbox : ''; ?>
 								</dd>

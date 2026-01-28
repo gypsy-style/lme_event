@@ -1386,7 +1386,7 @@ class endpoints
                                 $v = is_string($v) ? trim($v) : '';
                                 if ($v !== '') $selected[] = $v;
                             }
-                            $event_types_raw = implode(',', $selected);
+                            $event_types_raw = implode('・', $selected);
                             // 吹き出しのhtml
                         }
                         wp_reset_postdata();

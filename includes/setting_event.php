@@ -491,6 +491,7 @@ class settingEvent
     ?>
         <fieldset>
             <label>
+                <input type="hidden" name="event_stop_entry" value="0">
                 <input type="checkbox" name="event_stop_entry" value="1" <?= $value == 1 ? 'checked' : ''; ?>>
             </label>
         </fieldset>
@@ -503,6 +504,7 @@ class settingEvent
 ?>
         <fieldset>
             <label>
+                <input type="hidden" name="event_all_users" value="0">
                 <input type="checkbox" name="event_all_users" value="1" <?= $value == 1 ? 'checked' : ''; ?>>
             </label>
         </fieldset>
@@ -549,11 +551,6 @@ class settingEvent
                 // クイック編集などで未送信なら何もしない
                 continue;
             }
-        }
-
-        // チェックボックス（未送信時のクリア対応）
-        if (!isset($_POST['event_all_users'])) {
-            delete_post_meta($post_ID, 'event_all_users');
         }
     }
 
