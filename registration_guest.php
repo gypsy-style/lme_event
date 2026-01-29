@@ -20,7 +20,8 @@ $show_banner = get_option('show_banner');
     <meta name="format-detection" content="telephone=no" />
 
     <link href="./css/default.css" rel="stylesheet" media="all">
-    <link href="./css/front.css" rel="stylesheet" media="all">
+    <link href="./css/front260129.css" rel="stylesheet" media="all">
+    <link href="./css/front-init-mosaka.css" rel="stylesheet" media="all">
 
     <title>日創研南大阪経営研究会[会員登録]</title>
     <script

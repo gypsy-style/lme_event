@@ -28,7 +28,8 @@ $liff_id_mypage = get_option('liff_id_mypage');
     <meta name="format-detection" content="telephone=no" />
 
     <link href="./css/default.css" rel="stylesheet" media="all">
-    <link href="./css/front.css" rel="stylesheet" media="all">
+    <link href="./css/front260129.css" rel="stylesheet" media="all">
+    <link href="./css/front-init-mosaka.css" rel="stylesheet" media="all">
 
     <title>マイページ 申し込み済みイベント</title>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" type="text/javascript"></script>

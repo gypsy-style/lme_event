@@ -55,7 +55,8 @@ $store_name = get_post_meta($store_id, 'store_name', true);
     <meta name="format-detection" content="telephone=no" />
 
     <link href="./css/default.css" rel="stylesheet" media="all">
-    <link href="./css/front.css" rel="stylesheet" media="all">
+    <link href="./css/front260129.css" rel="stylesheet" media="all">
+    <link href="./css/front-init-mosaka.css" rel="stylesheet" media="all">
 
     <title>WAKUWAKU POINT [ポイントを使う]</title>
     <script

@@ -13,7 +13,8 @@ require_once('includes/html.php');
 <meta name="format-detection" content="telephone=no" />
 
 <link href="./css/default.css" rel="stylesheet" media="all">
-	<link href="./css/front.css" rel="stylesheet" media="all">
+	<link href="./css/front260129.css" rel="stylesheet" media="all">
+	<link href="./css/front-init-mosaka.css" rel="stylesheet" media="all">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" type="text/javascript"></script>
 	<script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
     <script>

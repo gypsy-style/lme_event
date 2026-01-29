@@ -174,7 +174,7 @@ if ($event_post && $event_post->post_type === 'event') {
 	<meta name="format-detection" content="telephone=no" />
 
 	<link href="./css/default.css" rel="stylesheet" media="all">
-	<link href="./css/front.css" rel="stylesheet" media="all">
+	<link href="./css/front260129.css" rel="stylesheet" media="all">
 	<link href="./css/front-init-mosaka.css" rel="stylesheet" media="all">
 
 	<title>スケジュール [申し込む]</title>
